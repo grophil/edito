@@ -1,111 +1,43 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full bg-slate-50">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestionnaire de Réécriture de Contenus Web</title>
-  <style>
-    :root {
-      --primary: #0052cc;
-      --primary-hover: #0065ff;
-      --bg: #f4f5f7;
-      --card-bg: #ffffff;
-      --border: #dcdfe4;
-      --text: #172b4d;
-      --text-muted: #5e6c84;
-      --danger: #de350b;
-      --warning: #ffab00;
-      --success: #36b37e;
+  <title>Gestionnaire & Back-Office de Réécriture Web</title>
+  
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+            }
+          }
+        }
+      }
     }
-
-    * { box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: var(--text); line-height: 1.4; }
-
-    /* Header & Navigation */
-    header { background: #0747a6; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    header h1 { margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
-    nav { display: flex; gap: 10px; }
-    .nav-btn { background: rgba(255,255,255,0.15); color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .nav-btn:hover { background: rgba(255,255,255,0.25); }
-    .nav-btn.active { background: white; color: #0747a6; }
-
-    /* Main Container */
-    main { padding: 25px 30px; max-width: 1600px; margin: 0 auto; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* Cards & Layout */
-    .card { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .card h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; color: #091e42; }
-    
-    /* Stats Bar */
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .kpi-card { background: white; border-radius: 6px; padding: 12px 16px; border: 1px solid var(--border); border-left: 5px solid var(--primary); }
-    .kpi-val { font-size: 1.6rem; font-weight: 700; }
-    .kpi-lbl { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-
-    /* Controls Bar */
-    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 15px; }
-    .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    
-    /* Forms & Inputs */
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-    .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-group.full { grid-column: 1 / -1; }
-    label { font-size: 0.8rem; font-weight: 600; color: #42526e; }
-    input, select, textarea { padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; font-family: inherit; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0,82,204,0.2); }
-    
-    /* Buttons */
-    .btn { padding: 8px 14px; border-radius: 4px; border: none; font-weight: 600; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-secondary { background: #ebecf0; color: #42526e; }
-    .btn-secondary:hover { background: #dfe1e6; }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-warning { background: var(--warning); color: #172b4d; }
-    .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
-
-    /* Table */
-    .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border); }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-    th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    th { background: #fafbfc; color: #5e6c84; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
-    tr:hover { background-color: #f4f5f7; }
-
-    /* Custom Badges & Selects */
-    .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-block; text-align: center; }
-    .status-select { font-weight: 700; border: none; padding: 4px 8px; border-radius: 12px; cursor: pointer; font-size: 0.8rem; }
-    .badge-prio-Haute { background: #ffebe6; color: #de350b; }
-    .badge-prio-Moyenne { background: #fffae6; color: #ff8b00; }
-    .badge-prio-Basse { background: #e3fcef; color: #006644; }
-
-    /* Due Date Alerts */
-    .date-ok { color: var(--text); }
-    .date-alert-j2 { background: #ffab00; color: #172b4d; padding: 2px 6px; border-radius: 4px; font-weight: 700; animation: pulse 2s infinite; }
-    .date-alert-overdue { background: #de350b; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-
-    /* JSON & Backoffice Styles */
-    .drop-zone { border: 2px dashed var(--border); border-radius: 6px; padding: 20px; text-align: center; background: #fafbfc; cursor: pointer; }
-    .drop-zone:hover { border-color: var(--primary); background: #f4f5f7; }
-    .bo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-    .bo-item-list { list-style: none; padding: 0; margin: 10px 0 0 0; max-height: 250px; overflow-y: auto; }
-    .bo-item-list li { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: #fafbfc; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 6px; gap: 8px; }
-    .bo-item-list li input[type="text"] { flex: 1; }
-  </style>
+  </script>
 </head>
-<body>
+<body class="h-full font-sans text-slate-800 antialiased flex flex-col">
 
-  <header>
-    <h1>📝 Suivi & Gestion des Réécritures Web</h1>
-    <nav>
-      <button class="nav-btn active" onclick="switchTab('dashboard')">📊 Tableau de Bord</button>
-      <button class="nav-btn" onclick="switchTab('import')">📥 Import JSON</button>
-      <button class="nav-btn" onclick="switchTab('backoffice')">⚙️ Back-Office</button>
-    </nav>
-  </header>
-
+  <!-- En-tête Principale avec Navigation Onglets -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <main>
     <!-- TAB 1: DASHBOARD -->
     <div id="tab-dashboard" class="tab-content active">
@@ -156,120 +88,339 @@
         </table>
       </div>
     </div>
+  </header>
 
-    <!-- TAB 2: IMPORT JSON -->
-    <div id="tab-import" class="tab-content">
-      <div class="card">
-        <h2>📥 Importation massive de contenus (JSON)</h2>
-        <p>Glissez-déposez un fichier `.json` ou collez directement la structure JSON ci-dessous.</p>
-        
-        <div class="drop-zone" onclick="document.getElementById('fileInput').click()" id="dropZone">
-          📄 Cliquez ou glissez votre fichier JSON ici
-          <input type="file" id="fileInput" accept=".json" style="display:none;" onchange="handleFileImport(event)">
+  <!-- ========================================================= -->
+  <!-- VUE 1 : TABLEAU DE SUIVI (DASHBOARD)                     -->
+  <!-- ========================================================= -->
+  <main id="viewDashboard" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- KPI / Métriques -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="statsContainer">
+      <!-- Rempli en JS -->
+    </div>
+
+    <!-- Barre de Filtres et de Recherche -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4">
+      <div class="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+        <!-- Recherche globale -->
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="searchInput" placeholder="Rechercher par titre, ID, rédacteur, thématique..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
         </div>
 
-        <div style="margin-top: 15px;">
-          <label for="jsonPaste">Ou collez le JSON brut :</label>
-          <textarea id="jsonPaste" rows="8" placeholder='[{"titre": "Exemple", "statut": "À traiter", ...}]'></textarea>
-        </div>
+        <!-- Filtres -->
+        <div class="flex flex-wrap gap-2 items-center">
+          <select id="filterStatut" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">Tous les statuts</option>
+          </select>
 
-        <div style="margin-top: 15px; display: flex; gap: 10px;">
-          <button class="btn btn-primary" onclick="processTextImport(false)">➕ Ajouter aux données existantes</button>
-          <button class="btn btn-danger" onclick="processTextImport(true)">⚠️ Remplacer toute la base</button>
-          <button class="btn btn-secondary" onclick="copySampleJSON()">📋 Copier un modèle JSON</button>
+          <select id="filterTypologie" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">Toutes les typologies</option>
+          </select>
+
+          <select id="filterPriorite" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">Toutes les priorités</option>
+            <option value="Basse">Basse</option>
+            <option value="Moyenne">Moyenne</option>
+            <option value="Haute">Haute</option>
+            <option value="Urgente">Urgente</option>
+          </select>
+
+          <select id="filterDga" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">Toutes les DGA</option>
+          </select>
+
+          <button id="btnClearFilters" class="px-3 py-2 text-slate-600 hover:text-slate-900 text-xs font-medium hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>Réinitialiser</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: BACK-OFFICE -->
-    <div id="tab-backoffice" class="tab-content">
-      <div class="controls">
-        <h2>⚙️ Configuration des listes déroulantes & couleurs</h2>
-        <div>
-          <button class="btn btn-secondary" onclick="exportBOConfig()">💾 Exporter Config</button>
-          <button class="btn btn-danger" onclick="resetBOConfig()">🔄 Réinitialiser par défaut</button>
+    <!-- Tableau de Suivi -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('id')">
+                <div class="flex items-center gap-1">ID <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('titre')">
+                <div class="flex items-center gap-1">Titre <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('typologie')">
+                <div class="flex items-center gap-1">Typologie <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('thematique')">
+                <div class="flex items-center gap-1">Thématique / DGA <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4">Équipe (Rédac / Rel.1 / Rel.2)</th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('date_butoire')">
+                <div class="flex items-center gap-1">Planning <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('priorite')">
+                <div class="flex items-center gap-1">Priorité <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('statut')">
+                <div class="flex items-center gap-1">Statut (Interactif) <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-200">
+            <!-- Rempli dynamiquement -->
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pied de tableau -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <span id="tableInfo">Affichage de 0 contenu(s)</span>
+        <div class="flex items-center gap-2">
+          <button id="btnClearAll" class="text-rose-600 hover:text-rose-800 font-medium hover:underline flex items-center gap-1">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Vider toute la base de contenus
+          </button>
         </div>
       </div>
-      <div class="bo-grid" id="boContainer"></div>
     </div>
+
   </main>
 
-  <!-- MODAL: ADD / EDIT CONTENT -->
-  <div id="contentModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-    <div class="card" style="width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto;">
-      <h2 id="modalTitle">Ajouter un contenu</h2>
-      <form id="itemForm" onsubmit="saveItem(event)">
-        <input type="hidden" id="editId">
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>Titre de la page / contenu *</label>
-            <input type="text" id="field_titre" required>
+  <!-- ========================================================= -->
+  <!-- VUE 2 : BACK-OFFICE ADM. DES LISTES DÉROULANTES           -->
+  <!-- ========================================================= -->
+  <main id="viewBackoffice" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 hidden">
+    
+    <!-- En-tête Back-Office -->
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <i data-lucide="sliders" class="w-5 h-5 text-brand-600"></i> Administration des Listes Déroulantes
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">Configurez dynamiquement les choix disponibles pour chaque champ du formulaire de réécriture.</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnExportConfig" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-300">
+          <i data-lucide="download-cloud" class="w-4 h-4"></i> Exporter la config
+        </button>
+        <button id="btnImportConfig" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-300">
+          <i data-lucide="upload-cloud" class="w-4 h-4"></i> Importer une config
+        </button>
+        <button id="btnResetConfig" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-rose-200">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Valeurs par défaut
+        </button>
+        <input type="file" id="inputFileConfig" accept=".json" class="hidden">
+      </div>
+    </div>
+
+    <!-- Grille des 7 Listes Déroulantes à Administrer -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="backofficeGrid">
+      <!-- Rempli dynamiquement en JS -->
+    </div>
+
+  </main>
+
+  <!-- MODAL : Import JSON en masse de Contenus -->
+  <div id="modalImport" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-brand-100 text-brand-700 rounded-lg">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
           </div>
-          <div class="form-group">
-            <label>Typologie</label>
-            <select id="field_typologie"></select>
-          </div>
-          <div class="form-group">
-            <label>Thématique</label>
-            <input type="text" id="field_thematique">
-          </div>
-          <div class="form-group">
-            <label>DGA</label>
-            <select id="field_dga"></select>
-          </div>
-          <div class="form-group">
-            <label>Service</label>
-            <select id="field_service"></select>
-          </div>
-          <div class="form-group">
-            <label>Attribué à (Rédacteur)</label>
-            <select id="field_attribue_a"></select>
-          </div>
-          <div class="form-group">
-            <label>Relecture 1</label>
-            <select id="field_relecture_1"></select>
-          </div>
-          <div class="form-group">
-            <label>Relecture 2</label>
-            <select id="field_relecture_2"></select>
-          </div>
-          <div class="form-group">
-            <label>Priorité</label>
-            <select id="field_priorite">
-              <option value="Basse">Basse</option>
-              <option value="Moyenne" selected>Moyenne</option>
-              <option value="Haute">Haute</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Statut</label>
-            <select id="field_statut"></select>
-          </div>
-          <div class="form-group">
-            <label>Date d'envoi</label>
-            <input type="date" id="field_date_envoi">
-          </div>
-          <div class="form-group">
-            <label>Date butoire</label>
-            <input type="date" id="field_date_butoire">
-          </div>
-          <div class="form-group">
-            <label>Contact référent</label>
-            <input type="text" id="field_contact">
-          </div>
-          <div class="form-group full">
-            <label>Commentaires / Consignes</label>
-            <textarea id="field_commentaires" rows="3"></textarea>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Importation JSON en Masse</h3>
+            <p class="text-xs text-slate-500">Chargez ou collez vos contenus au format JSON</p>
           </div>
         </div>
-        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
-          <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button class="btnCloseModal text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5 overflow-y-auto flex-1">
+        <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-brand-500 hover:bg-brand-50/50 transition-all cursor-pointer flex flex-col items-center justify-center group">
+          <i data-lucide="file-up" class="w-8 h-8 text-slate-400 group-hover:text-brand-500 mb-2 transition-colors"></i>
+          <p class="text-xs font-medium text-slate-700">Glissez-déposez votre fichier <strong>.json</strong> ici</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">ou cliquez pour parcourir</p>
+          <input type="file" id="fileInput" accept=".json" class="hidden">
         </div>
-      </form>
+
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-slate-200"></div>
+          <span class="flex-shrink mx-4 text-slate-400 text-xs uppercase font-semibold">Ou collez du code JSON</span>
+          <div class="flex-grow border-t border-slate-200"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Code JSON brut</label>
+          <textarea id="jsonTextArea" rows="4" placeholder='[ { "id": "PAGE-1", "titre": "Exemple...", "statut": "À traiter" } ]' class="w-full p-3 font-mono text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-700">Comportement de l'import :</span>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+              <input type="radio" name="importMode" value="append" checked class="text-brand-600 focus:ring-brand-500">
+              Ajouter aux données actuelles
+            </label>
+            <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+              <input type="radio" name="importMode" value="replace" class="text-brand-600 focus:ring-brand-500">
+              Remplacer toute la base
+            </label>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-lg p-3.5 bg-slate-900 text-slate-100">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-300 flex items-center gap-1">
+              <i data-lucide="code" class="w-3.5 h-3.5"></i> Modèle JSON attendu (15 champs)
+            </span>
+            <button id="btnCopySample" class="text-xs text-brand-400 hover:text-brand-300 font-medium flex items-center gap-1">
+              <i data-lucide="copy" class="w-3 h-3"></i> Copier l'exemple
+            </button>
+          </div>
+          <pre class="text-[11px] font-mono leading-tight text-slate-300 overflow-x-auto bg-slate-950 p-2.5 rounded border border-slate-800" id="jsonSampleCode"></pre>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
+        <div id="importFeedback" class="text-xs font-medium"></div>
+        <div class="flex gap-2">
+          <button class="btnCloseModal px-4 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100">Annuler</button>
+          <button id="btnProcessImport" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-medium shadow-sm transition-colors flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i> Valider & Importer
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- MODAL : Formulaire d'Ajout / Édition d'un Contenu -->
+  <div id="modalForm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
+            <i data-lucide="edit-3" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900" id="modalFormTitle">Nouveau contenu</h3>
+            <p class="text-xs text-slate-500">Formulaire avec listes déroulantes synchronisées</p>
+          </div>
+        </div>
+        <button class="btnCloseModal text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="itemForm" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+        <input type="hidden" id="field_index">
+
+        <!-- Ligne 1 : ID & Titre -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">ID Unique</label>
+            <input type="text" id="field_id" placeholder="ex: PAGE-101" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div class="md:col-span-3">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Titre de la page / URL *</label>
+            <input type="text" id="field_titre" required placeholder="ex: Inscription au service de cantine scolaire" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Ligne 2 : Thématique, Typologie, Priorité, Statut -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Thématique</label>
+            <input type="text" id="field_thematique" placeholder="ex: Éducation" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Typologie *</label>
+            <select id="field_typologie" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Priorité</label>
+            <select id="field_priorite" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="Basse">Basse</option>
+              <option value="Moyenne" selected>Moyenne</option>
+              <option value="Haute">Haute</option>
+              <option value="Urgente">Urgente</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Statut *</label>
+            <select id="field_statut" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+        </div>
+
+        <!-- Ligne 3 : Organigramme (DGA, Service, Contact) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">DGA *</label>
+            <select id="field_dga" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Service *</label>
+            <select id="field_service" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Référent</label>
+            <input type="text" id="field_contact" placeholder="ex: contact.enfance@ville.fr" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Ligne 4 : Acteurs -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Attribué à (Rédacteur)</label>
+            <select id="field_attribue_a" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Relecteur 1</label>
+            <select id="field_relecture_1" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Relecteur 2 (Valideur)</label>
+            <select id="field_relecture_2" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+        </div>
+
+        <!-- Ligne 5 : Dates -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Date d'envoi</label>
+            <input type="date" id="field_date_envoi" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Date limite / Butoire</label>
+            <input type="date" id="field_date_butoire" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Ligne 6 : Commentaires -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Commentaires & Consignes</label>
+          <textarea id="field_commentaires" rows="3" placeholder="Notes particulières, contraintes RGAA, simplification du vocabulaire..." class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" class="btnCloseModal px-4 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5">
+            <i data-lucide="save" class="w-4 h-4"></i> Enregistrer le contenu
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT & LOGIQUE COMPLÈTE DE L'APPLICATION -->
   <script>
     // DEFAULT CONFIG & STATE
     const defaultConfig = {
@@ -295,9 +446,11 @@
 
     // INIT
     function init() {
-      // Ensure color structure
+      // Ensure color structure & format string IDs
       boConfig.statut = boConfig.statut.map(s => typeof s === 'string' ? { name: s, color: '#e2e8f0' } : s);
+      items = items.map(i => ({ ...i, id: String(i.id) }));
       saveBOConfig();
+      saveItemsData();
       renderApp();
       setupDragAndDrop();
     }
@@ -315,7 +468,9 @@
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-' + tabId).classList.add('active');
-      event.target.classList.add('active');
+      if (event && event.target) {
+        event.target.classList.add('active');
+      }
 
       if (tabId === 'backoffice') renderBackOffice();
       if (tabId === 'dashboard') renderApp();
@@ -326,13 +481,14 @@
       populateDropdowns();
       renderKPIs();
 
-      const search = document.getElementById('filterSearch').value.toLowerCase();
+      const searchInput = document.getElementById('filterSearch');
+      const search = searchInput ? searchInput.value.toLowerCase() : '';
       const fStatut = document.getElementById('filterStatut').value;
       const fTypo = document.getElementById('filterTypologie').value;
       const fPrio = document.getElementById('filterPrio').value;
 
       const filtered = items.filter(item => {
-        const mSearch = !search || item.titre.toLowerCase().includes(search) || item.id.toLowerCase().includes(search) || (item.contact && item.contact.toLowerCase().includes(search));
+        const mSearch = !search || item.titre.toLowerCase().includes(search) || String(item.id).toLowerCase().includes(search) || (item.contact && item.contact.toLowerCase().includes(search));
         const mStatut = !fStatut || item.statut === fStatut;
         const mTypo = !fTypo || item.typologie === fTypo;
         const mPrio = !fPrio || item.priorite === fPrio;
@@ -349,7 +505,7 @@
         const textColor = getContrastYIQ(stObj.color);
 
         tr.innerHTML = `
-          <td><strong>#${item.id}</strong></td>
+          <td><strong>#${escapeHtml(item.id)}</strong></td>
           <td>
             <strong>${escapeHtml(item.titre)}</strong>
             ${item.contact ? `<br><small style="color:var(--text-muted)">Contact: ${escapeHtml(item.contact)}</small>` : ''}
@@ -442,6 +598,8 @@
 
     function populateSelect(elemId, options, defaultText = null) {
       const sel = document.getElementById(elemId);
+      if (!sel) return;
+      const currentVal = sel.value;
       sel.innerHTML = '';
       if (defaultText) {
         sel.innerHTML += `<option value="">${defaultText}</option>`;
@@ -449,11 +607,14 @@
       options.forEach(opt => {
         sel.innerHTML += `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`;
       });
+      if (currentVal && options.includes(currentVal)) {
+        sel.value = currentVal;
+      }
     }
 
     // QUICK STATUS UPDATE
     function updateQuickStatus(id, newStatut) {
-      const item = items.find(i => i.id === id);
+      const item = items.find(i => String(i.id) === String(id));
       if (item) {
         item.statut = newStatut;
         saveItemsData();
@@ -466,15 +627,17 @@
       document.getElementById('modalTitle').innerText = "Ajouter un contenu";
       document.getElementById('editId').value = "";
       document.getElementById('itemForm').reset();
+      populateDropdowns();
       document.getElementById('contentModal').style.display = 'flex';
     }
 
     function openEditModal(id) {
-      const item = items.find(i => i.id === id);
+      populateDropdowns();
+      const item = items.find(i => String(i.id) === String(id));
       if (!item) return;
 
-      document.getElementById('modalTitle').innerText = "Modifier le contenu #" + id;
-      document.getElementById('editId').value = id;
+      document.getElementById('modalTitle').innerText = "Modifier le contenu #" + item.id;
+      document.getElementById('editId').value = String(item.id);
       document.getElementById('field_titre').value = item.titre || "";
       document.getElementById('field_thematique').value = item.thematique || "";
       document.getElementById('field_typologie').value = item.typologie || "";
@@ -501,7 +664,7 @@
       e.preventDefault();
       const editId = document.getElementById('editId').value;
       const itemData = {
-        id: editId || Date.now().toString().slice(-5),
+        id: editId ? String(editId) : Date.now().toString().slice(-5),
         titre: document.getElementById('field_titre').value,
         thematique: document.getElementById('field_thematique').value,
         typologie: document.getElementById('field_typologie').value,
@@ -519,7 +682,7 @@
       };
 
       if (editId) {
-        const idx = items.findIndex(i => i.id === editId);
+        const idx = items.findIndex(i => String(i.id) === String(editId));
         if (idx !== -1) items[idx] = itemData;
       } else {
         items.push(itemData);
@@ -532,7 +695,7 @@
 
     function deleteItem(id) {
       if (confirm("Supprimer ce contenu ?")) {
-        items = items.filter(i => i.id !== id);
+        items = items.filter(i => String(i.id) !== String(id));
         saveItemsData();
         renderApp();
       }
@@ -555,7 +718,7 @@
         <ul class="bo-item-list">
           ${boConfig.statut.map((st, i) => `
             <li>
-              <input type="color" value="${st.color}" onchange="updateBOColor(${i}, this.value)">
+              <input type="color" value="${st.color}" oninput="updateBOColor(${i}, this.value)" onchange="updateBOColor(${i}, this.value)">
               <span>${escapeHtml(st.name)}</span>
               <div>
                 <button class="btn btn-secondary btn-sm" onclick="moveBO('statut', ${i}, -1)">⬆️</button>
@@ -617,17 +780,20 @@
       saveBOConfig();
       inp.value = '';
       renderBackOffice();
+      renderApp();
     }
 
     function updateBOColor(index, color) {
       boConfig.statut[index].color = color;
       saveBOConfig();
+      renderApp();
     }
 
     function deleteBO(key, index) {
       boConfig[key].splice(index, 1);
       saveBOConfig();
       renderBackOffice();
+      renderApp();
     }
 
     function moveBO(key, index, dir) {
@@ -638,6 +804,7 @@
       boConfig[key][newIdx] = temp;
       saveBOConfig();
       renderBackOffice();
+      renderApp();
     }
 
     function resetBOConfig() {
@@ -645,6 +812,7 @@
         boConfig = JSON.parse(JSON.stringify(defaultConfig));
         saveBOConfig();
         renderBackOffice();
+        renderApp();
       }
     }
 
@@ -655,6 +823,7 @@
     // JSON IMPORT LOGIC
     function setupDragAndDrop() {
       const zone = document.getElementById('dropZone');
+      if (!zone) return;
       zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.borderColor = 'var(--primary)'; });
       zone.addEventListener('dragleave', () => { zone.style.borderColor = 'var(--border)'; });
       zone.addEventListener('drop', (e) => {
@@ -681,7 +850,7 @@
         if (!Array.isArray(parsed)) throw new Error("Le JSON doit être un tableau d'objets [ {} ]");
 
         const sanitized = parsed.map((item, idx) => ({
-          id: item.id || (Date.now() + idx).toString().slice(-5),
+          id: String(item.id || (Date.now() + idx).toString().slice(-5)),
           titre: item.titre || "Sans titre",
           thematique: item.thematique || "",
           typologie: item.typologie || boConfig.typologie[0] || "",
@@ -759,6 +928,7 @@
     }
 
     function getContrastYIQ(hexcolor){
+      if(!hexcolor) return '#172b4d';
       hexcolor = hexcolor.replace("#", "");
       if(hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c + c).join('');
       const r = parseInt(hexcolor.substr(0,2),16);
