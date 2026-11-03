@@ -3,1475 +3,1481 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suivi Refonte des Fiches Aides — Calvados</title>
+  <title>Gestionnaire & Back-Office de Réécriture Web</title>
   
-  <!-- Tailwind CSS Framework Standalone CDN -->
-  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <script>
     tailwind.config = {
-      corePlugins: { preflight: true },
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
           colors: {
             brand: {
-              50: '#f0f9ff',
-              100: '#e0f2fe',
+              50: '#f0f7ff',
+              100: '#e0effe',
               500: '#0284c7',
-              600: '#0284c7',
-              700: '#0369a1',
-              800: '#075985',
-              900: '#0c4a6e',
+              600: '#0369a1',
+              700: '#075985',
             }
           }
         }
       }
     }
   </script>
-  
-  <!-- FontAwesome Icons & Chart.js -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-    /* Redimensionnement des colonnes */
-    th.resizable {
-      position: relative;
-    }
-    .resizer {
-      position: absolute;
-      right: 0;
-      top: 0;
-      height: 100%;
-      width: 5px;
-      background: rgba(203, 213, 225, 0.5);
-      cursor: col-resize;
-      user-select: none;
-    }
-    .resizer:hover, .resizer.resizing {
-      background: #0284c7;
-      width: 6px;
-    }
-  </style>
 </head>
-<body class="h-full text-slate-800 flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+<body class="h-full font-sans text-slate-800 antialiased flex flex-col">
 
-  <div id="app" class="flex flex-col h-full overflow-hidden">
-    <!-- Header -->
-    <header class="bg-slate-900 text-white border-b border-slate-800 shadow-lg shrink-0">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <!-- En-tête Principale avec Navigation Onglets -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Titre -->
         <div class="flex items-center space-x-3">
-          <div class="bg-sky-600 text-white p-2 rounded-xl font-bold text-xl flex items-center justify-center w-10 h-10 shadow-md">
-            14
+          <div class="p-2 bg-brand-500 rounded-lg text-white shadow">
+            <i data-lucide="file-text" class="w-6 h-6"></i>
           </div>
           <div>
-            <h1 class="text-lg font-bold tracking-tight text-white leading-tight">Suivi Refonte des Fiches Aides</h1>
-            <p class="text-xs text-slate-400">Département du Calvados — Langage Clair & Web</p>
+            <h1 class="text-lg font-bold tracking-tight">Réécriture Web</h1>
+            <p class="text-xs text-slate-400">Suivi éditorial & Administration</p>
           </div>
         </div>
+        
+        <!-- Onglets Navigation Principale -->
+        <nav class="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700/80">
+          <button id="navTabDashboard" onclick="switchMainTab('dashboard')" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all bg-brand-600 text-white shadow-sm">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Tableau de Suivi</span>
+          </button>
+          <button id="navTabBackoffice" onclick="switchMainTab('backoffice')" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-700/50">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            <span>Back-Office (Listes)</span>
+          </button>
+        </nav>
 
-        <div class="flex items-center space-x-2 sm:space-x-3">
-          <button id="btn-relances" onclick="filterRelances()" class="flex items-center space-x-2 bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-500/30 transition">
-            <i class="fa-solid fa-bell text-amber-400 animate-pulse"></i>
-            <span>Relances J-2 : <span id="badge-relances-count" class="font-bold underline">0</span></span>
+        <!-- Actions rapides Globales -->
+        <div class="flex items-center space-x-2">
+          <button id="btnOpenImport" class="flex items-center space-x-2 px-3 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium rounded-lg transition-colors shadow-sm">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Import JSON</span>
           </button>
           
-          <button onclick="exportData()" class="hidden sm:flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition">
-            <i class="fa-solid fa-download"></i>
-            <span>Exporter</span>
+          <button id="btnExportCSV" class="flex items-center space-x-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-colors border border-slate-700">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">CSV</span>
           </button>
-          
-          <label class="hidden sm:flex items-center space-x-1.5 bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow cursor-pointer transition">
-            <i class="fa-solid fa-upload"></i>
-            <span>Importer</span>
-            <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
-          </label>
-          
-          <button onclick="openModal()" class="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition">
-            <i class="fa-solid fa-plus"></i>
-            <span class="hidden md:inline">Nouvelle Fiche</span>
+
+          <button id="btnExportJSON" class="flex items-center space-x-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-colors border border-slate-700">
+            <i data-lucide="file-json" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">JSON</span>
+          </button>
+
+          <button id="btnOpenCreate" class="flex items-center space-x-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm ml-1">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Nouveau</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- VUE 1 : TABLEAU DE SUIVI (DASHBOARD)                     -->
+  <!-- ========================================================= -->
+  <main id="viewDashboard" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- KPI / Métriques -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" id="statsContainer">
+      <!-- Rempli en JS -->
+    </div>
+
+    <!-- Barre de Filtres et de Recherche -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4">
+      <div class="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+        <!-- Recherche globale -->
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <!-- Filtres -->
+        <div class="flex flex-wrap gap-2 items-center">
+          <select id="filterStatut" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">Tous les statuts</option>
+          </select>
+
+          <select id="filterTypologie" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">Toutes les typologies</option>
+          </select>
+
+          <select id="filterPriorite" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">Toutes les priorités</option>
+            <option value="Basse">Basse</option>
+            <option value="Moyenne">Moyenne</option>
+            <option value="Haute">Haute</option>
+            <option value="Urgente">Urgente</option>
+          </select>
+
+          <select id="filterDga" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">Toutes les DGA</option>
+          </select>
+
+          <button id="btnClearFilters" class="px-3 py-2 text-slate-600 hover:text-slate-900 text-sm font-medium hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span>Réinitialiser</span>
           </button>
         </div>
       </div>
-    </header>
+    </div>
 
-    <!-- Navigation & Tabs -->
-    <nav class="bg-white border-b border-slate-200 shadow-sm shrink-0">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-12">
-        <div class="flex space-x-1">
-          <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn px-4 py-2 text-xs font-semibold rounded-md text-sky-600 bg-sky-50 flex items-center space-x-2 transition">
-            <i class="fa-solid fa-chart-pie"></i>
-            <span>Dashboard</span>
+    <!-- Tableau de Suivi -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500 tracking-wider">
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('id')">
+                <div class="flex items-center gap-1">ID <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('titre')">
+                <div class="flex items-center gap-1">Titre <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('typologie')">
+                <div class="flex items-center gap-1">Typologie <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('thematique')">
+                <div class="flex items-center gap-1">Thématique / DGA <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4">Équipe (Rédac / Rel.1 / Rel.2)</th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('date_butoire')">
+                <div class="flex items-center gap-1">Planning <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('priorite')">
+                <div class="flex items-center gap-1">Priorité <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('statut')">
+                <div class="flex items-center gap-1">Statut (Interactif) <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
+              </th>
+              <th class="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-200">
+            <!-- Rempli dynamiquement -->
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pied de tableau -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <span id="tableInfo">Affichage de 0 contenu(s)</span>
+        <div class="flex items-center gap-2">
+          <button id="btnClearAll" class="text-rose-600 hover:text-rose-800 font-medium hover:underline flex items-center gap-1">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Vider toute la base de contenus
           </button>
-          <button onclick="switchTab('table')" id="tab-table" class="tab-btn px-4 py-2 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2 transition">
-            <i class="fa-solid fa-list-check"></i>
-            <span>Liste des Fiches (<span id="total-count">0</span>)</span>
-          </button>
-          <button onclick="switchTab('kanban')" id="tab-kanban" class="tab-btn px-4 py-2 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2 transition">
-            <i class="fa-solid fa-columns"></i>
-            <span>Vue Kanban</span>
-          </button>
-          <button onclick="switchTab('backoffice')" id="tab-backoffice" class="tab-btn px-4 py-2 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2 transition">
-            <i class="fa-solid fa-sliders"></i>
-            <span>Back-Office</span>
-          </button>
-        </div>
-
-        <div class="text-xs text-slate-500 font-medium">
-          Dernière màj : <span id="last-update" class="text-slate-700 font-semibold">En direct</span>
         </div>
       </div>
-    </nav>
+    </div>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 bg-slate-100/70">
-      <div class="max-w-7xl mx-auto">
+  </main>
 
-        <!-- TAB 1: DASHBOARD -->
-        <div id="view-dashboard" class="space-y-6">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Fiches</p>
-                <p id="kpi-total" class="text-2xl font-bold text-slate-900 mt-1">0</p>
-              </div>
-              <div class="p-3 bg-sky-50 text-sky-600 rounded-xl">
-                <i class="fa-solid fa-file-lines text-xl"></i>
-              </div>
-            </div>
+  <!-- ========================================================= -->
+  <!-- VUE 2 : BACK-OFFICE ADM. DES LISTES DÉROULANTES           -->
+  <!-- ========================================================= -->
+  <main id="viewBackoffice" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 hidden">
+    
+    <!-- En-tête Back-Office -->
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <i data-lucide="sliders" class="w-5 h-5 text-brand-600"></i> Administration des Listes Déroulantes
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">Configurez dynamiquement les choix disponibles pour chaque champ du formulaire de réécriture.</p>
+      </div>
 
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-amber-600">En cours réécriture</p>
-                <p id="kpi-encours" class="text-2xl font-bold text-amber-700 mt-1">0</p>
-              </div>
-              <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                <i class="fa-solid fa-pen-ruler text-xl"></i>
-              </div>
-            </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnExportConfig" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-300">
+          <i data-lucide="download-cloud" class="w-4 h-4"></i> Exporter la config
+        </button>
+        <button id="btnImportConfig" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-300">
+          <i data-lucide="upload-cloud" class="w-4 h-4"></i> Importer une config
+        </button>
+        <button id="btnResetConfig" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-rose-200">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Valeurs par défaut
+        </button>
+        <input type="file" id="inputFileConfig" accept=".json" class="hidden">
+      </div>
+    </div>
 
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Envoyé Service</p>
-                <p id="kpi-envoye" class="text-2xl font-bold text-blue-700 mt-1">0</p>
-              </div>
-              <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                <i class="fa-solid fa-paper-plane text-xl"></i>
-              </div>
-            </div>
+    <!-- Grille des 7 Listes Déroulantes à Administrer -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <!-- List Card: Statut -->
+      ${createBackofficeCard('statut', 'Statuts de Réécriture', 'list-checks', 'Statut du flux (ex: À traiter, Publié...)')}
+      
+      <!-- List Card: DGA -->
+      ${createBackofficeCard('dga', 'Directions Générales (DGA)', 'building-2', 'DGA associées')}
 
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Terminé / Validé</p>
-                <p id="kpi-termine" class="text-2xl font-bold text-emerald-700 mt-1">0</p>
-              </div>
-              <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <i class="fa-solid fa-circle-check text-xl"></i>
-              </div>
-            </div>
+      <!-- List Card: Service -->
+      ${createBackofficeCard('service', 'Services / Pôles', 'briefcase', 'Services rattachés')}
+
+      <!-- List Card: Typologie -->
+      ${createBackofficeCard('typologie', 'Typologies de Contenu', 'tags', 'Page info, démarche, etc.')}
+
+      <!-- List Card: Attribué à -->
+      ${createBackofficeCard('attribue_a', 'Rédacteurs (Attribué à)', 'user-check', 'Membres de l\'équipe rédactionnelle')}
+
+      <!-- List Card: Relecture 1 -->
+      ${createBackofficeCard('relecture_1', 'Relecteurs N°1', 'user-check', 'Première relecture')}
+
+      <!-- List Card: Relecture 2 -->
+      ${createBackofficeCard('relecture_2', 'Relecteurs N°2 / Valideurs', 'shield-check', 'Validation finale')}
+
+    </div>
+
+  </main>
+
+  <!-- MODAL : Import JSON en masse de Contenus -->
+  <div id="modalImport" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-brand-100 text-brand-700 rounded-lg">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
           </div>
-
-          <!-- Alert Relances Card -->
-          <div id="card-alert-relance" class="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4 rounded-xl shadow-md flex items-center justify-between cursor-pointer hover:opacity-95 transition" onclick="filterRelances()">
-            <div class="flex items-center space-x-3">
-              <div class="p-2.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                <i class="fa-solid fa-bell text-2xl animate-bounce"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-sm">Alerte Suivi & Relances (<span id="alert-kpi-count">0</span> fiches)</h3>
-                <p class="text-xs text-amber-100">Des fiches ont dépassé leur date limite ou arrivent à échéance (J-2). Cliquez pour filtrer la liste.</p>
-              </div>
-            </div>
-            <span class="bg-white text-slate-900 text-xs font-bold px-3 py-1.5 rounded-lg shadow">Voir les fiches</span>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Importation JSON en Masse</h3>
+            <p class="text-xs text-slate-500">Chargez ou collez vos contenus au format JSON</p>
           </div>
+        </div>
+        <button class="btnCloseModal text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
 
-          <!-- Charts Grid -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-              <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
-                <span>Répartition par Statut</span>
-                <i class="fa-solid fa-chart-pie text-slate-400"></i>
-              </h3>
-              <div class="relative h-64 flex items-center justify-center">
-                <canvas id="chartStatut"></canvas>
-              </div>
-            </div>
+      <div class="p-6 space-y-5 overflow-y-auto flex-1">
+        <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-brand-500 hover:bg-brand-50/50 transition-all cursor-pointer flex flex-col items-center justify-center group">
+          <i data-lucide="file-up" class="w-8 h-8 text-slate-400 group-hover:text-brand-500 mb-2 transition-colors"></i>
+          <p class="text-xs font-medium text-slate-700">Glissez-déposez votre fichier <strong>.json</strong> ici</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">ou cliquez pour parcourir</p>
+          <input type="file" id="fileInput" accept=".json" class="hidden">
+        </div>
 
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-              <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
-                <span>Charge par Rédacteur</span>
-                <i class="fa-solid fa-chart-column text-slate-400"></i>
-              </h3>
-              <div class="relative h-64">
-                <canvas id="chartRedacteur"></canvas>
-              </div>
-            </div>
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-slate-200"></div>
+          <span class="flex-shrink mx-4 text-slate-400 text-xs uppercase font-semibold">Ou collez du code JSON</span>
+          <div class="flex-grow border-t border-slate-200"></div>
+        </div>
 
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm lg:col-span-2">
-              <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
-                <span>Avancement par Thématique</span>
-                <i class="fa-solid fa-layer-group text-slate-400"></i>
-              </h3>
-              <div class="relative h-64">
-                <canvas id="chartThematique"></canvas>
-              </div>
-            </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Code JSON brut</label>
+          <textarea id="jsonTextArea" rows="4" placeholder='[ { "id": "PAGE-1", "titre": "Exemple...", "statut": "À traiter" } ]' class="w-full p-3 font-mono text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-700">Comportement de l'import :</span>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+              <input type="radio" name="importMode" value="append" checked class="text-brand-600 focus:ring-brand-500">
+              Ajouter aux données actuelles
+            </label>
+            <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+              <input type="radio" name="importMode" value="replace" class="text-brand-600 focus:ring-brand-500">
+              Remplacer toute la base
+            </label>
           </div>
         </div>
 
-        <!-- TAB 2: TABLE LIST -->
-        <div id="view-table" class="hidden space-y-4">
-          <!-- Filters bar -->
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center justify-between">
-            <div class="flex flex-wrap items-center gap-3 flex-1">
-              <div class="relative min-w-[200px] flex-1 sm:flex-none">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Rechercher titre, contact, service..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500">
-              </div>
-
-              <select id="filter-statut" onchange="applyFilters()" class="text-xs py-1.5 px-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500">
-              <option value="">Tous les statuts</option>
-            </select>
-
-            <select id="filter-typologie" onchange="applyFilters()" class="text-xs py-1.5 px-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500 font-medium">
-              <option value="">Toutes typologies</option>
-            </select>
-
-            <select id="filter-thematique" onchange="applyFilters()" class="text-xs py-1.5 px-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500">
-                <option value="">Toutes les thématiques</option>
-              </select>
-
-              <select id="filter-redacteur" onchange="applyFilters()" class="text-xs py-1.5 px-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500">
-                <option value="">Tous les rédacteurs</option>
-              </select>
-
-              <select id="filter-relance" onchange="applyFilters()" class="text-xs py-1.5 px-3 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-500 font-medium text-amber-900 bg-amber-50">
-                <option value="">Toutes échéances</option>
-                <option value="relance">🚨 À relancer (J-2 ou Retard)</option>
-                <option value="urgent">🔴 Retard uniquement</option>
-              </select>
-            </div>
-
-            <button onclick="resetFilters()" class="text-xs text-slate-500 hover:text-sky-600 font-medium transition">
-              Réinitialiser
+        <div class="border border-slate-200 rounded-lg p-3.5 bg-slate-900 text-slate-100">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-300 flex items-center gap-1">
+              <i data-lucide="code" class="w-3.5 h-3.5"></i> Modèle JSON attendu (15 champs)
+            </span>
+            <button id="btnCopySample" class="text-xs text-brand-400 hover:text-brand-300 font-medium flex items-center gap-1">
+              <i data-lucide="copy" class="w-3 h-3"></i> Copier l'exemple
             </button>
           </div>
+          <pre class="text-[11px] font-mono leading-tight text-slate-300 overflow-x-auto bg-slate-950 p-2.5 rounded border border-slate-800" id="jsonSampleCode"></pre>
+        </div>
+      </div>
 
-          <!-- Batch Action Bar -->
-          <div id="batch-action-bar" class="hidden bg-slate-900 text-white px-4 py-2.5 rounded-xl flex items-center justify-between shadow-md text-xs transition">
-            <div class="flex items-center space-x-2 font-medium">
-              <i class="fa-solid fa-list-check text-sky-400"></i>
-              <span><span id="selected-count" class="font-bold text-sky-400">0</span> élément(s) sélectionné(s)</span>
+      <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
+        <div id="importFeedback" class="text-xs font-medium"></div>
+        <div class="flex gap-2">
+          <button class="btnCloseModal px-4 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100">Annuler</button>
+          <button id="btnProcessImport" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-medium shadow-sm transition-colors flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i> Valider & Importer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL : Formulaire d'Ajout / Édition d'un Contenu (Listes dynamiques) -->
+  <div id="modalForm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
+            <i data-lucide="edit-3" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900" id="modalFormTitle">Nouveau contenu</h3>
+            <p class="text-xs text-slate-500">Formulaire avec listes déroulantes synchronisées</p>
+          </div>
+        </div>
+        <button class="btnCloseModal text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="itemForm" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+        <input type="hidden" id="field_index">
+
+        <!-- Ligne 1 : ID & Titre -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">ID Unique</label>
+            <input type="text" id="field_id" placeholder="ex: PAGE-101" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div class="md:col-span-3">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Titre de la page / URL *</label>
+            <input type="text" id="field_titre" required placeholder="ex: Inscription au service de cantine scolaire" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Ligne 2 : Thématique, Typologie (Dynamique), Priorité, Statut (Dynamique) -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Thématique</label>
+            <input type="text" id="field_thematique" placeholder="ex: Éducation" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Typologie *</label>
+            <select id="field_typologie" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Priorité</label>
+            <select id="field_priorite" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="Basse">Basse</option>
+              <option value="Moyenne" selected>Moyenne</option>
+              <option value="Haute">Haute</option>
+              <option value="Urgente">Urgente</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Statut *</label>
+            <select id="field_statut" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+        </div>
+
+        <!-- Ligne 3 : Organigramme (DGA Dynamique, Service Dynamique, Contact) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">DGA *</label>
+            <select id="field_dga" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Service *</label>
+            <select id="field_service" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Référent</label>
+            <input type="text" id="field_contact" placeholder="ex: contact.enfance@ville.fr" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Ligne 4 : Acteurs (Attribué à Dynamique, Relecture 1 Dynamique, Relecture 2 Dynamique) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Attribué à (Rédacteur)</label>
+            <select id="field_attribue_a" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Relecteur 1</label>
+            <select id="field_relecture_1" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Relecteur 2 (Valideur)</label>
+            <select id="field_relecture_2" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          </div>
+        </div>
+
+        <!-- Ligne 5 : Dates -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Date d'envoi</label>
+            <input type="date" id="field_date_envoi" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Date limite / Butoire</label>
+            <input type="date" id="field_date_butoire" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Ligne 6 : Commentaires -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Commentaires & Consignes</label>
+          <textarea id="field_commentaires" rows="3" placeholder="Notes particulières, contraintes RGAA, simplification du vocabulaire..." class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" class="btnCloseModal px-4 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5">
+            <i data-lucide="save" class="w-4 h-4"></i> Enregistrer le contenu
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT & LOGIQUE DE L'APPLICATION -->
+  <script>
+    // -------------------------------------------------------------
+    // CONFIGURATION DES LISTES DÉROULANTES PAR DÉFAUT (BACK-OFFICE)
+    // -------------------------------------------------------------
+    const defaultConfig = {
+      statut: ["À traiter", "En réécriture", "Relecture 1", "Relecture 2", "Validé", "Publié"],
+      dga: ["DGA Administration Générale", "DGA Services à la Population", "DGA Sports et Culture", "DGA Solidarités et Cohésion", "DGA Aménagement & Urbanisme"],
+      service: ["Service État Civil", "Direction des Sports", "CCAS / Action Sociale", "Service Communication", "Direction de l'Éducation", "Urbanisme"],
+      typologie: ["Démarche / Procédure", "Page d'information", "Fiche service", "Actualité", "Dossier Thématique"],
+      attribue_a: ["Sophie Martin", "Lucas Bernard", "Julie Roy", "Jean Dupont", "Claire Moreau"],
+      relecture_1: ["Pierre Durand", "Sophie Martin", "Marc Antoine", "Camille Petit"],
+      relecture_2: ["Directeur État Civil", "Service Communication", "DGA Social", "Responsable Éditorial"]
+    };
+
+    // Données de démonstration de contenus (15 champs)
+    const sampleData = [
+      {
+        id: "PAGE-001",
+        titre: "Demande de carte nationale d'identité",
+        thematique: "Citoyenneté",
+        priorite: "Haute",
+        statut: "En réécriture",
+        attribue_a: "Sophie Martin",
+        relecture_1: "Pierre Durand",
+        relecture_2: "Directeur État Civil",
+        date_envoi: "2026-10-15",
+        date_butoire: "2026-11-20",
+        dga: "DGA Administration Générale",
+        service: "Service État Civil",
+        contact: "etat.civil@commune.fr",
+        commentaires: "Réécrire en langage FALC (Facile à Lire et à Comprendre).",
+        typologie: "Démarche / Procédure"
+      },
+      {
+        id: "PAGE-002",
+        titre: "Horaires et tarifs de la piscine municipale",
+        thematique: "Sports & Loisirs",
+        priorite: "Moyenne",
+        statut: "À traiter",
+        attribue_a: "Lucas Bernard",
+        relecture_1: "Sophie Martin",
+        relecture_2: "Service Communication",
+        date_envoi: "2026-11-01",
+        date_butoire: "2026-12-05",
+        dga: "DGA Sports et Culture",
+        service: "Direction des Sports",
+        contact: "piscine@commune.fr",
+        commentaires: "Mettre sous forme de tableau responsive les nouveaux tarifs.",
+        typologie: "Page d'information"
+      },
+      {
+        id: "PAGE-003",
+        titre: "Aide au logement pour les jeunes travailleurs",
+        thematique: "Social & Logement",
+        priorite: "Urgente",
+        statut: "Relecture 1",
+        attribue_a: "Julie Roy",
+        relecture_1: "Pierre Durand",
+        relecture_2: "DGA Social",
+        date_envoi: "2026-09-20",
+        date_butoire: "2026-11-10",
+        dga: "DGA Solidarités et Cohésion",
+        service: "CCAS / Action Sociale",
+        contact: "ccas@commune.fr",
+        commentaires: "Clarifier les conditions de ressources et pièces justificatives.",
+        typologie: "Fiche service"
+      }
+    ];
+
+    // -------------------------------------------------------------
+    // ÉTAT GLOBAL DE L'APPLICATION
+    // -------------------------------------------------------------
+    let items = [];
+    let config = {};
+    let sortColumn = 'id';
+    let sortDirection = 'asc';
+
+    // Helper pour générer une carte d'administration Back-office
+    function createBackofficeCard(key, title, icon, subtitle) {
+      return `
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="p-2 bg-brand-50 text-brand-600 rounded-lg">
+                <i data-lucide="${icon}" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold text-slate-900">${title}</h3>
+                <p class="text-[10px] text-slate-500">${subtitle}</p>
+              </div>
             </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="deselectAll()" class="px-2.5 py-1 text-slate-300 hover:text-white transition">Annuler</button>
-              <button onclick="deleteBatch()" class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg font-semibold shadow transition flex items-center space-x-1.5">
-                <i class="fa-solid fa-trash-can"></i>
-                <span>Supprimer la sélection</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full" id="count_config_${key}">0</span>
+          </div>
+
+          <div class="p-3 border-b border-slate-100 bg-white">
+            <form onsubmit="addConfigOption(event, '${key}')" class="flex gap-2">
+              <input type="text" id="input_add_${key}" required placeholder="Ajouter une option..." class="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <button type="submit" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg text-xs transition-colors shadow-sm flex items-center gap-1">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Ajouter
+              </button>
+            </form>
+          </div>
+
+          <div class="p-3 flex-1 overflow-y-auto max-h-60 space-y-1.5" id="list_config_${key}">
+            <!-- Options injectées dynamiquement -->
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // INITIALISATION
+    // -------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      loadConfig();
+      loadData();
+      setupEventListeners();
+      setupSampleJsonDisplay();
+      renderApp();
+    });
+
+    // -------------------------------------------------------------
+    // GESTION STORAGE (CONFIG & DONNÉES)
+    // -------------------------------------------------------------
+    function loadConfig() {
+      const storedConfig = localStorage.getItem('rewrite_config_v1');
+      if (storedConfig) {
+        try {
+          config = JSON.parse(storedConfig);
+          // Garantir la présence de toutes les clés
+          Object.keys(defaultConfig).forEach(k => {
+            if (!config[k]) config[k] = [...defaultConfig[k]];
+          });
+        } catch(e) {
+          config = JSON.parse(JSON.stringify(defaultConfig));
+        }
+      } else {
+        config = JSON.parse(JSON.stringify(defaultConfig));
+        saveConfig();
+      }
+    }
+
+    function saveConfig() {
+      localStorage.setItem('rewrite_config_v1', JSON.stringify(config));
+      populateSelectsFromConfig();
+      renderBackoffice();
+    }
+
+    function loadData() {
+      const storedData = localStorage.getItem('rewrite_items_v2');
+      if (storedData) {
+        try {
+          items = JSON.parse(storedData);
+        } catch(e) {
+          items = [...sampleData];
+        }
+      } else {
+        items = [...sampleData];
+        saveData();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('rewrite_items_v2', JSON.stringify(items));
+    }
+
+    // -------------------------------------------------------------
+    // GESTION DU BACK-OFFICE (ADMINISTRATION DES OPTIONS)
+    // -------------------------------------------------------------
+    function renderBackoffice() {
+      Object.keys(defaultConfig).forEach(key => {
+        const container = document.getElementById(`list_config_${key}`);
+        const countSpan = document.getElementById(`count_config_${key}`);
+        if (!container) return;
+
+        const options = config[key] || [];
+        if (countSpan) countSpan.textContent = options.length;
+
+        if (options.length === 0) {
+          container.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">Aucune option configurée.</p>`;
+          return;
+        }
+
+        container.innerHTML = options.map((opt, idx) => `
+          <div class="flex items-center justify-between p-2 bg-slate-50 hover:bg-slate-100/80 rounded-lg border border-slate-200/60 text-xs transition-colors group">
+            <span class="font-medium text-slate-800 truncate mr-2" id="label_${key}_${idx}">${escapeHtml(opt)}</span>
+            
+            <div class="flex items-center space-x-1 opacity-95">
+              <button onclick="moveConfigOption('${key}', ${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-30 cursor-not-allowed text-slate-400"' : 'class="p-1 hover:text-brand-600 text-slate-500"'} title="Monter">
+                <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="moveConfigOption('${key}', ${idx}, 1)" ${idx === options.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed text-slate-400"' : 'class="p-1 hover:text-brand-600 text-slate-500"'} title="Descendre">
+                <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="editConfigOption('${key}', ${idx})" class="p-1 hover:text-brand-600 text-slate-500" title="Modifier">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="deleteConfigOption('${key}', ${idx})" class="p-1 hover:text-rose-600 text-slate-500" title="Supprimer">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             </div>
           </div>
-
-          <!-- Data Table -->
-          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto custom-scrollbar">
-              <table id="data-table" class="w-full text-left border-collapse text-xs table-fixed">
-                <thead>
-                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold text-[11px] tracking-wider">
-                    <th class="p-3 w-10 text-center">
-                      <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" class="rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer">
-                    </th>
-                    <th class="p-3 w-12 text-center resizable">Prio<div class="resizer"></div></th>
-                    <th class="p-3 w-16 resizable">Type<div class="resizer"></div></th>
-                    <th class="p-3 w-64 resizable">Titre de la fiche<div class="resizer"></div></th>
-                    <th class="p-3 w-40 resizable">Thématique<div class="resizer"></div></th>
-                    <th class="p-3 w-32 resizable">Statut<div class="resizer"></div></th>
-                    <th class="p-3 w-32 resizable">Attribué à<div class="resizer"></div></th>
-                    <th class="p-3 w-44 resizable">Service / Contact<div class="resizer"></div></th>
-                    <th class="p-3 w-28 resizable">Date Envoi<div class="resizer"></div></th>
-                    <th class="p-3 w-32 resizable">Date Butoire<div class="resizer"></div></th>
-                    <th class="p-3 w-24 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="table-body" class="divide-y divide-slate-100 font-medium">
-                  <!-- Dynamic rows -->
-                </tbody>
-              </table>
-            </div>
-            <div class="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
-              <span id="showing-count">Affichage de 0 sur 0 fiches</span>
-              <div id="pagination" class="flex space-x-1"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB 3: KANBAN -->
-        <div id="view-kanban" class="hidden">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            <!-- Column 1 -->
-            <div class="bg-slate-200/70 p-4 rounded-xl border border-slate-300 flex flex-col max-h-[calc(100vh-180px)]">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="font-bold text-xs uppercase tracking-wider text-amber-800 flex items-center space-x-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                  <span>En cours réécriture</span>
-                </h3>
-                <span id="kanban-count-encours" class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-              </div>
-              <div id="kanban-encours" class="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1 min-h-[150px]"></div>
-            </div>
-
-            <!-- Column 2 -->
-            <div class="bg-slate-200/70 p-4 rounded-xl border border-slate-300 flex flex-col max-h-[calc(100vh-180px)]">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="font-bold text-xs uppercase tracking-wider text-blue-800 flex items-center space-x-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                  <span>Envoyé Service</span>
-                </h3>
-                <span id="kanban-count-envoye" class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-              </div>
-              <div id="kanban-envoye" class="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1 min-h-[150px]"></div>
-            </div>
-
-            <!-- Column 3 -->
-            <div class="bg-slate-200/70 p-4 rounded-xl border border-slate-300 flex flex-col max-h-[calc(100vh-180px)]">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="font-bold text-xs uppercase tracking-wider text-emerald-800 flex items-center space-x-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                  <span>Terminé / Validé</span>
-                </h3>
-                <span id="kanban-count-termine" class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-              </div>
-              <div id="kanban-termine" class="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1 min-h-[150px]"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB 4: BACK-OFFICE -->
-        <div id="view-backoffice" class="hidden space-y-6">
-          <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <div>
-              <h2 class="text-base font-bold text-slate-900">Administration du Back-Office</h2>
-              <p class="text-xs text-slate-500">Gérez les listes de valeurs référentielles utilisées dans l'ensemble de l'application.</p>
-            </div>
-            <button onclick="restoreDefaultLists()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5">
-              <i class="fa-solid fa-rotate-left"></i>
-              <span>Réinitialiser les listes</span>
-            </button>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Statuts -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
-              <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700 mb-3 flex items-center justify-between border-b pb-2">
-                <span>Statuts</span>
-                <span id="count-bo-statuts" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">0</span>
-              </h3>
-              <div class="flex space-x-2 mb-3">
-                <input type="text" id="add-bo-statuts" placeholder="Ex: En validation" class="flex-1 px-2.5 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-sky-500">
-                <button onclick="addBoItem('statuts')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
-              </div>
-              <ul id="list-bo-statuts" class="space-y-1.5 overflow-y-auto custom-scrollbar flex-1 max-h-60 text-xs"></ul>
-            </div>
-
-            <!-- Typologies -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
-              <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700 mb-3 flex items-center justify-between border-b pb-2">
-                <span>Typologies de contenu</span>
-                <span id="count-bo-typologies" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">0</span>
-              </h3>
-              <div class="flex space-x-2 mb-3">
-                <input type="text" id="add-bo-typologies" placeholder="Ex: Fiche, Mission..." class="flex-1 px-2.5 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-sky-500">
-                <button onclick="addBoItem('typologies')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
-              </div>
-              <ul id="list-bo-typologies" class="space-y-1.5 overflow-y-auto custom-scrollbar flex-1 max-h-60 text-xs"></ul>
-            </div>
-
-            <!-- DGA -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
-              <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700 mb-3 flex items-center justify-between border-b pb-2">
-                <span>DGA</span>
-                <span id="count-bo-dga" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">0</span>
-              </h3>
-              <div class="flex space-x-2 mb-3">
-                <input type="text" id="add-bo-dga" placeholder="Ex: DGA-S" class="flex-1 px-2.5 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-sky-500">
-                <button onclick="addBoItem('dga')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
-              </div>
-              <ul id="list-bo-dga" class="space-y-1.5 overflow-y-auto custom-scrollbar flex-1 max-h-60 text-xs"></ul>
-            </div>
-
-            <!-- Thématiques -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
-              <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700 mb-3 flex items-center justify-between border-b pb-2">
-                <span>Thématiques</span>
-                <span id="count-bo-thematiques" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">0</span>
-              </h3>
-              <div class="flex space-x-2 mb-3">
-                <input type="text" id="add-bo-thematiques" placeholder="Ex: Sport" class="flex-1 px-2.5 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-sky-500">
-                <button onclick="addBoItem('thematiques')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
-              </div>
-              <ul id="list-bo-thematiques" class="space-y-1.5 overflow-y-auto custom-scrollbar flex-1 max-h-60 text-xs"></ul>
-            </div>
-
-            <!-- Rédacteurs -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
-              <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700 mb-3 flex items-center justify-between border-b pb-2">
-                <span>Rédacteurs</span>
-                <span id="count-bo-redacteurs" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">0</span>
-              </h3>
-              <div class="flex space-x-2 mb-3">
-                <input type="text" id="add-bo-redacteurs" placeholder="Ex: Jean D." class="flex-1 px-2.5 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-sky-500">
-                <button onclick="addBoItem('redacteurs')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
-              </div>
-              <ul id="list-bo-redacteurs" class="space-y-1.5 overflow-y-auto custom-scrollbar flex-1 max-h-60 text-xs"></ul>
-            </div>
-
-            <!-- Relecteurs -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
-              <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700 mb-3 flex items-center justify-between border-b pb-2">
-                <span>Relecteurs</span>
-                <span id="count-bo-relecteurs" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">0</span>
-              </h3>
-              <div class="flex space-x-2 mb-3">
-                <input type="text" id="add-bo-relecteurs" placeholder="Ex: Marie L." class="flex-1 px-2.5 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-sky-500">
-                <button onclick="addBoItem('relecteurs')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
-              </div>
-              <ul id="list-bo-relecteurs" class="space-y-1.5 overflow-y-auto custom-scrollbar flex-1 max-h-60 text-xs"></ul>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </main>
-  </div>
-
-  <!-- EDIT / ADD MODAL -->
-  <div id="modal-fiche" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
-      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
-        <h3 id="modal-title" class="font-bold text-base">Éditer la fiche</h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-      </div>
-
-      <form id="form-fiche" onsubmit="saveFiche(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar text-xs">
-        <input type="hidden" id="field-id">
-
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Titre de la fiche *</label>
-          <input type="text" id="field-titre" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs">
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Typologie *</label>
-            <select id="field-typologie" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs font-semibold"></select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Thématique *</label>
-            <select id="field-thematique" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs"></select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Priorité</label>
-            <select id="field-priorite" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs">
-              <option value="1">1 (Haute)</option>
-              <option value="2">2 (Moyenne)</option>
-              <option value="3">3 (Basse)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Statut *</label>
-            <select id="field-statut" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs font-semibold"></select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Attribué à (Rédacteur)</label>
-            <select id="field-attribue" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs"></select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Relecture 1</label>
-            <select id="field-relecture1" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs"></select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Relecture 2</label>
-            <select id="field-relecture2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs"></select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-amber-50/60 p-3 rounded-xl border border-amber-200">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Date d'envoi service</label>
-            <input type="date" id="field-date-envoi" onchange="autoCalculateDeadline()" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs bg-white">
-          </div>
-          <div>
-            <label class="block font-semibold text-amber-900 mb-1">🚨 Date Butoire (Calculée automatiquement à +15 jours)</label>
-            <input type="date" id="field-date-butoire" class="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-xs font-bold bg-white">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">DGA</label>
-            <select id="field-dga" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs"></select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Service Référent</label>
-            <input type="text" id="field-service" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Contact Référent</label>
-            <input type="text" id="field-contact" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs">
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Commentaires / Remarques</label>
-          <textarea id="field-commentaires" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 text-xs"></textarea>
-        </div>
-
-        <div class="pt-4 border-t flex justify-between items-center">
-          <button type="button" id="btn-delete" onclick="deleteFiche()" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold transition">
-            Supprimer
-          </button>
-          <div class="flex space-x-2">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded-lg text-slate-600 font-semibold hover:bg-slate-50 transition">Annuler</button>
-            <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg shadow transition">Enregistrer</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- RELANCE MAIL MODAL -->
-  <div id="modal-relance" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden">
-      <div class="p-4 bg-amber-600 text-white flex items-center justify-between">
-        <h3 class="font-bold text-base flex items-center space-x-2">
-          <i class="fa-solid fa-paper-plane"></i>
-          <span>Générateur de Relance Service</span>
-        </h3>
-        <button onclick="closeRelanceModal()" class="text-amber-200 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-      </div>
-
-      <div class="p-6 space-y-4 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Destinataire (Contact / Service)</label>
-          <input type="text" id="relance-to" readonly class="w-full px-3 py-2 bg-slate-100 border rounded-lg font-medium">
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Objet du courriel</label>
-          <input type="text" id="relance-subject" class="w-full px-3 py-2 border rounded-lg font-semibold text-sky-700">
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Corps du message de relance</label>
-          <textarea id="relance-body" rows="6" class="w-full px-3 py-2 border rounded-lg font-mono text-xs text-slate-800 leading-relaxed"></textarea>
-        </div>
-
-        <div class="pt-2 flex justify-end space-x-2">
-          <button onclick="copyRelanceText()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition flex items-center space-x-1.5">
-            <i class="fa-solid fa-copy"></i>
-            <span>Copier le texte</span>
-          </button>
-          <a id="relance-mailto-link" href="#" target="_blank" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow transition flex items-center space-x-1.5">
-            <i class="fa-solid fa-envelope"></i>
-            <span>Ouvrir dans votre messagerie</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SCRIPT APP LOGIC & EMBEDDED DATA -->
-  <script>
-    // Complete 114 entries initial dataset embedded directly
-    let defaultFiches = [
-      {"id":1,"titre":"Accès à un logement : l'aide du Fonds de solidarité logement (FSL)","thematique":"logement","priorite":"1","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Anne L.","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"DGA-S","service":"Service habitat logement","contact":"V. Lopez","commentaires":""},
-      {"id":2,"titre":"Accompagnement social lié au logement (ASLL)","thematique":"logement","priorite":"1","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Anne L.","relecture_2":"","date_envoi":"2026-07-24","date_butoire":"","dga":"DGA-S","service":"Service habitat logement","contact":"V. Lopez","commentaires":""},
-      {"id":3,"titre":"Accueil d'un volontaire européen","thematique":"Education et collèges","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":4,"titre":"Aide à l'installation d'une chaudière à bois et/ou d'un réseau de chaleur primaire - Exploitants agricoles, associations et particuliers","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":5,"titre":"Aide à l'accompagnement des collectivtités pour les projets d'approvisionnement local et la valorisation des circuits courts","thematique":"Aménagement et dévloppement du territoire","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":6,"titre":"Aide à l'acquisition de matériel nautique et sportif","thematique":"Sports et loisirs","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":7,"titre":"Aide à l'animation de la filière bois bocage","thematique":"Aménagement et dévloppement du territoire","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":8,"titre":"Aide à la création pour les artistes professionnels indépendants en arts visuels Fonds d'aide Ville de Caen / Département du Calvados","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":9,"titre":"Aide à la création pour les artisites professionnels indépendants du spectacle vivant","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"2026-10-28","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":10,"titre":"Aide à la diffusion artistique et à la médiation culturelle","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"Service arts et territoires","contact":"","commentaires":""},
-      {"id":11,"titre":"Aide à la mutualisation et aux structures ressources","thematique":"Culture et patrimoine","priorite":"2","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":12,"titre":"Aide à la plantation de haies - collectivités","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":13,"titre":"Aide à l'immobilier d'entreprise sous forme de prêt à taux zéro","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":14,"titre":"Aide à l'immobilier d'entreprise touristisque","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"Terminé","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":15,"titre":"Aide au développement de l'action culturelle en bibliothèque","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"Bibliothèque du Calvados","contact":"","commentaires":""},
-      {"id":16,"titre":"Aide au développement et à l'entretien de circuits qualité randonnée","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"Terminé","attribue_a":"Anne L.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":"Nouvelle fiche Calvados Attractivité - à réécrire en langage clair ?"},
-      {"id":17,"titre":"Aide aux commerces, à l'artisanat et aux services de proximité","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":18,"titre":"Aide aux congrés, colloques et manifestations exceptionnelles","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Anne L.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":19,"titre":"Aide aux échanges et cessions amiables d'immeubles ruraux","thematique":"Aménagement et dévloppement du territoire","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":20,"titre":"Aide aux festivals","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"Service arts et territoires","contact":"","commentaires":""},
-      {"id":21,"titre":"Aide aux grands clubs sportifs","thematique":"Sports et loisirs","priorite":"2","statut":"En cours réécriture","attribue_a":"Anne L.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":22,"titre":"Aide aux manifestations sportives","thematique":"Sports et loisirs","priorite":"2","statut":"En cours réécriture","attribue_a":"Anne L.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":23,"titre":"Aide aux publications, expositions, outils d'interprétation et animation du patrimoine","thematique":"Culture et patrimoine","priorite":"3","statut":"Envoyé service","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"Service patrimoine","contact":"","commentaires":""},
-      {"id":24,"titre":"Aide aux structures conventionnées départementales et labels nationaux","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":25,"titre":"Aide financière pour des projets de recensement, d'étude et de fouille du patrimoine archéologique","thematique":"Culture et patrimoine","priorite":"3","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"2026-10-28","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":26,"titre":"Aide générale aux clubs sportifs","thematique":"Sports et loisirs","priorite":"2","statut":"En cours réécriture","attribue_a":"Anne L.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":27,"titre":"Aide pour l'adhésion au dispositif Eglises Ouvertes","thematique":"Culture et patrimoine","priorite":"3","statut":"Terminé","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"DGA-ECAT","service":"Service patrimoine","contact":"","commentaires":"vérifier si l'aide existe encore auprès du service\nAide non reportée en 2027, fiche annulée, validé par B Vallée, vu par EP le 20260810"},
-      {"id":28,"titre":"Aide pour la communication et la valorisation d'une activité agricole","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":29,"titre":"Aide pour les manifestions agricoles","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":30,"titre":"Aide pour un projet agricole inférieur à 10,000€HT","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":31,"titre":"Aide pour l'organisation de cours de langue étrangère dans les comités de jumelage","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":32,"titre":"Aide sociale à l'hébergement (ASH)","thematique":"Seniors et aidants","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":33,"titre":"Aides à la plantation de haies","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":34,"titre":"Aides à la réalisation d'un plan de gestion de haies","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":35,"titre":"Aides au développement et à l'entretien de circuits de qualité randonnée","thematique":"Aménagement et dévloppement du territoire","priorite":"3","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":36,"titre":"Aides aux petites communes rurales (APCR et APCR+)","thematique":"Aménagement et dévloppement du territoire","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":37,"titre":"Aides familiales","thematique":"Enfance et famille","priorite":"1","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"DGA-S","service":"","contact":"","commentaires":""},
-      {"id":38,"titre":"Aides pour la réhabilitation de l'assainissement non collectif des collectivités","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":39,"titre":"Allocation personnalisée d'autonomie (APA)","thematique":"Seniors et aidants","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":40,"titre":"Appel à projets initiatives collèges (APIC)","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":41,"titre":"Appel à projets sport santé collégiens","thematique":"Sports et loisirs","priorite":"3","statut":"En cours réécriture","attribue_a":"Anne L.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":42,"titre":"Atelier de préparation à l'examen du code de la route","thematique":"emploi et insertion professionnelle","priorite":"3","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":43,"titre":"Ateliers de découverte et d'apprentissage pour savoir se déplacer en ville","thematique":"emploi et insertion professionnelle","priorite":"3","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":44,"titre":"Auto-écoles sociales","thematique":"emploi et insertion professionnelle","priorite":"3","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":45,"titre":"Autorisation d'occupation temporaire du domaine public maritime départemental","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":46,"titre":"Bénéficiaire du RSA: mise à jour de votre situation","thematique":"emploi et insertion professionnelle","priorite":"1","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"2026-07-24","date_butoire":"2026-11-03","dga":"DGA-S","service":"Service insertion","contact":"","commentaires":""},
-      {"id":47,"titre":"Bourse aux sportifs en devenir","thematique":"Sports et loisirs","priorite":"2","statut":"En cours réécriture","attribue_a":"Anne L.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":48,"titre":"Bourse d'installation à la vie autonome","thematique":"Enfance et famille","priorite":"1","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"DGA-S","service":"","contact":"","commentaires":""},
-      {"id":49,"titre":"Bourses départementales collégiens","thematique":"Education et collèges","priorite":"1","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":50,"titre":"Calvados Ingénierie : demande d'assistance technique en ligne","thematique":"Aménagement et dévloppement du territoire","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":51,"titre":"Calvados Nature","thematique":"Aménagement et dévloppement du territoire","priorite":"3","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":52,"titre":"Citoyens du Calvados - Citoyens d'Europe","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":53,"titre":"Collège aux Archives","thematique":"Culture et patrimoine","priorite":"3","statut":"Envoyé service","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"2026-10-28","dga":"DGA-ECAT","service":"Direction des archives","contact":"","commentaires":""},
-      {"id":54,"titre":"Collège au Cinéma - NEW","thematique":"Culture et patrimoine","priorite":"3","statut":"Envoyé service","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"Service arts et territoires","contact":"","commentaires":"NEW - proposition nouvelle fiche (aide déjà existante) /Elodie"},
-      {"id":55,"titre":"Conservation départementale d'objets mobiliers","thematique":"Culture et patrimoine","priorite":"3","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":56,"titre":"Contrat de développement culturel de territoire : crédits de développement","thematique":"Culture et patrimoine","priorite":"1","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"2026-11-03","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":57,"titre":"Contrat de développement culturel de territoire : crédits de professionnalisation","thematique":"Culture et patrimoine","priorite":"1","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"2026-10-28","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":58,"titre":"Contrats de territoire 2022-2027","thematique":"Aménagement et dévloppement du territoire","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":59,"titre":"Coup de pouce sports de nature","thematique":"Sports et loisirs","priorite":"3","statut":"Terminé","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":"N'existe plus / Dispositif non renouvellée"},
-      {"id":60,"titre":"Demande de carte de transport scolaire","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":61,"titre":"Demande d'objets promotionnels et de signalétique","thematique":"Sports et loisirs","priorite":"2","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":62,"titre":"Demande en ligne auprès de la MDPH","thematique":"Handicap","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":63,"titre":"Demander la Prestation de compensation handicap (PCH)","thematique":"Handicap","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":64,"titre":"Demander une aide-ménagère","thematique":"Seniors et aidants","priorite":"2","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":65,"titre":"Développement d'un réseau départemental de location solidaire de véhicule","thematique":"emploi et insertion professionnelle","priorite":"3","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":66,"titre":"Droit de préemption: un outil au service de la protection des espaces naturels sensibles","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":67,"titre":"Educ de Normandie (ENT)","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":68,"titre":"Equipement chauffage bois : aide à la réalisation d'études de faisabilité - Collectivités","thematique":"Aménagement et dévloppement du territoire","priorite":"3","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":69,"titre":"Faire rayonner le Calvados : Cap sur les manifestations emblématiques touristiques","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"Terminé","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":70,"titre":"Faire réaliser un diagnostic archéologique avant l'achat d'un terrain ou des travaux","thematique":"Culture et patrimoine","priorite":"3","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":71,"titre":"Faire réaliser une fouille préventive","thematique":"Culture et patrimoine","priorite":"3","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"2026-11-03","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":72,"titre":"Fonds de solidarité pour l'énergie et l'eau","thematique":"logement","priorite":"1","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Anne L.","relecture_2":"","date_envoi":"2026-07-24","date_butoire":"","dga":"DGA-S","service":"Service insertion","contact":"","commentaires":""},
-      {"id":73,"titre":"Formation et accompagnement des professionnels du domaine artistique","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"2026-10-28","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":74,"titre":"Garage social","thematique":"emploi et insertion professionnelle","priorite":"3","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":75,"titre":"GéoCollège Calvados - Trouver son collège de secteur","thematique":"Education et collèges","priorite":"1","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":76,"titre":"Guide des actions éducatives","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"DGA-ECAT","service":"","contact":"","commentaires":"est-ce bien une aide ? c'est plus un service"},
-      {"id":77,"titre":"Fonds de Solidarité pour l'Energie (FSE)","thematique":"logement","priorite":"1","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Anne L.","relecture_2":"","date_envoi":"2026-07-24","date_butoire":"2026-10-28","dga":"DGA-S","service":"Service insertion","contact":"","commentaires":""},
-      {"id":78,"titre":"Inforoute","thematique":"Aménagement et dévloppement du territoire","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":79,"titre":"Initiatives jeunes","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":80,"titre":"Itinér'Air","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":81,"titre":"Location et/ou acquisition de véhicules 2 ou 4 roues","thematique":"emploi et insertion professionnelle","priorite":"3","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":82,"titre":"Maintien dans votre logement : l'aide du Fonds de solidarité logement (FSL)","thematique":"logement","priorite":"1","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Anne L.","relecture_2":"","date_envoi":"2026-07-24","date_butoire":"","dga":"DGA-S","service":"Service insertion","contact":"","commentaires":""},
-      {"id":83,"titre":"Mapéo Calvados","thematique":"Aménagement et dévloppement du territoire","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":84,"titre":"Notaire : récupération sur une succession des aides sociales départementales","thematique":"Seniors et aidants","priorite":"1","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":85,"titre":"Obtenir une attestion d'honorabilité","thematique":"Enfance et famille","priorite":"1","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"DGA-S","service":"","contact":"","commentaires":""},
-      {"id":86,"titre":"Payer en ligne vos services publics avec PAYFIP","thematique":"Seniors et aidants","priorite":"1","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":87,"titre":"Prestation diagnostic et accompagnement","thematique":"emploi et insertion professionnelle","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"DGA-S","service":"","contact":"","commentaires":""},
-      {"id":88,"titre":"Restauration du patrimoine historique","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"Service patrimoine","contact":"","commentaires":""},
-      {"id":89,"titre":"Revenu de solidarité active (RSA)","thematique":"emploi et insertion professionnelle","priorite":"1","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Anne L.","relecture_2":"","date_envoi":"2026-07-24","date_butoire":"2026-10-28","dga":"DGA-S","service":"Service insertion","contact":"","commentaires":""},
-      {"id":90,"titre":"Secours exceptionnel enfance famille","thematique":"Enfance et famille","priorite":"1","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"DGA-S","service":"","contact":"","commentaires":""},
-      {"id":91,"titre":"Séjours scolaires à l'étranger","thematique":"Education et collèges","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":92,"titre":"Signature de la charte de jumelage","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":93,"titre":"Sorties Scol'Air : citoyenneté et orientation","thematique":"Education et collèges","priorite":"2","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":94,"titre":"Sorties Scol'Air : culture","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"Service patrimoine","contact":"Scaba SCHOLLE","commentaires":""},
-      {"id":95,"titre":"Sorties Scol'Air : de la terre à la mer","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"DGA-AE","service":"","contact":"","commentaires":""},
-      {"id":96,"titre":"Sorties Scol'Air : espaces naturels sensibles (ENS)","thematique":"Aménagement et dévloppement du territoire","priorite":"2","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":97,"titre":"Speak 14 : accueillir un assistant dans mon collège","thematique":"Education et collèges","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":98,"titre":"Speak14 : devenir assitant de langue dans un collège","thematique":"Education et collèges","priorite":"2","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":99,"titre":"Sport santé et publics cibles","thematique":"Sports et loisirs","priorite":"3","statut":"En cours réécriture","attribue_a":"Anne L.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":100,"titre":"Subvention au titre des amendes de police pour des opérations en matière de circulation routière","thematique":"Aménagement et dévloppement du territoire","priorite":"1","statut":"En cours réécriture","attribue_a":"Anne L.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"DGA-AE","service":"Service accompagnement des agences routières","contact":"D. Paressant","commentaires":""},
-      {"id":101,"titre":"Subvention de fonctionnement à la vie littéraire","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"AIDE Lucas D.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"2026-11-03","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":102,"titre":"Subvention pour les associations de valorisation du patrimoine et du devoir de mémoire","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"AIDE Lucas D.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":103,"titre":"Subventions pour les associations venant en aide aux personnes en difficulté","thematique":"Seniors et aidants","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":104,"titre":"Subvention pour les établissements d'enseignement artistique","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":105,"titre":"Subvention pour renforcer l'attractivité des collections des bibliothèques","thematique":"Culture et patrimoine","priorite":"2","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"2026-10-28","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":106,"titre":"Téléassistance Calvados","thematique":"Seniors et aidants","priorite":"1","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":107,"titre":"Transport scolaire des élèves et étudiants en situation de handicap","thematique":"Handicap","priorite":"1","statut":"En cours réécriture","attribue_a":"","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"","dga":"","service":"","contact":"","commentaires":""},
-      {"id":108,"titre":"Trouver un mode de garde","thematique":"Enfance et famille","priorite":"1","statut":"En cours réécriture","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"","date_butoire":"","dga":"DGA-S","service":"","contact":"","commentaires":""},
-      {"id":109,"titre":"Twin 14 : rencontres européennes de jeunes","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""},
-      {"id":110,"titre":"Valoriser votre contribution aux fouilles préventives","thematique":"Culture et patrimoine","priorite":"3","statut":"Envoyé service","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"","contact":"","commentaires":""},
-      {"id":111,"titre":"ViaTrajectoire","thematique":"Seniors et aidants","priorite":"1","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"","relecture_2":"","date_envoi":"","date_butoire":"2026-11-03","dga":"","service":"","contact":"","commentaires":""},
-      {"id":112,"titre":"Visite du musée de Vieux-la-Romaine et des sites archéologiques","thematique":"Culture et patrimoine","priorite":"3","statut":"Envoyé service","attribue_a":"Elodie P.","relecture_1":"Elise F.","relecture_2":"","date_envoi":"2026-08-12","date_butoire":"","dga":"DGA-ECAT","service":"Musée Vieux-la-Romaine","contact":"","commentaires":""},
-      {"id":113,"titre":"Volontariat au Bezirk de Basse-Franconie (Allemagne)","thematique":"Education et collèges","priorite":"3","statut":"En cours réécriture","attribue_a":"Elise F.","relecture_1":"Elodie P.","relecture_2":"","date_envoi":"","date_butoire":"2026-10-28","dga":"","service":"","contact":"","commentaires":""}
-    ];
-
-    let lists = {
-      statuts: ["En cours réécriture", "Envoyé service", "Terminé"],
-      typologies: ["Fiche", "Mission"],
-      dga: ["DGA-S", "DGA-ECAT", "DGA-AE"],
-      thematiques: ["logement", "Education et collèges", "Aménagement et dévloppement du territoire", "Sports et loisirs", "Culture et patrimoine", "Seniors et aidants", "Enfance et famille", "emploi et insertion professionnelle", "Handicap"],
-      redacteurs: ["Elise F.", "Elodie P.", "Anne L.", "AIDE Lucas D."],
-      relecteurs: ["Elise F.", "Elodie P.", "Anne L."]
-    };
-
-    let fiches = [];
-    let filteredFiches = [];
-    let selectedIds = new Set();
-    let currentPage = 1;
-    const pageSize = 15;
-    let chartStatut = null, chartRedacteur = null, chartThematique = null;
-
-    // Local Storage & List Helpers
-    function saveToLocalStorage() {
-      localStorage.setItem('calvados_fiches_data', JSON.stringify(fiches));
-      const lastUpdateEl = document.getElementById('last-update');
-      if (lastUpdateEl) {
-        lastUpdateEl.innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      }
-    }
-
-    function saveListsToLocalStorage() {
-      localStorage.setItem('calvados_backoffice_lists', JSON.stringify(lists));
-    }
-
-    function extractInitialListsFromFiches() {
-      const themes = [...new Set(fiches.map(f => f.thematique).filter(Boolean))];
-      const redacs = [...new Set(fiches.map(f => f.attribue_a).filter(Boolean))];
-      const dgas = [...new Set(fiches.map(f => f.dga).filter(Boolean))];
-
-      themes.forEach(t => { if (!lists.thematiques.includes(t)) lists.thematiques.push(t); });
-      redacs.forEach(r => { if (!lists.redacteurs.includes(r)) lists.redacteurs.push(r); });
-      dgas.forEach(d => { if (!lists.dga.includes(d)) lists.dga.push(d); });
-
-      lists.thematiques.sort();
-      lists.redacteurs.sort();
-      lists.dga.sort();
-    }
-
-    // Date / Relance helpers
-    function getRelanceStatus(fiche) {
-      if (!fiche.date_butoire || fiche.statut === 'Terminé') return { status: 'none', label: '', class: '' };
-      
-      const now = new Date();
-      now.setHours(0,0,0,0);
-      const target = new Date(fiche.date_butoire);
-      target.setHours(0,0,0,0);
-
-      const diffDays = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
-
-      if (diffDays < 0) {
-        return { status: 'overdue', label: `🚨 Retard (${Math.abs(diffDays)}j)`, class: 'bg-red-100 text-red-800 border-red-300 animate-pulse' };
-      } else if (diffDays <= 2) {
-        return { status: 'warning', label: `⚠️ Relance (J-${diffDays})`, class: 'bg-amber-100 text-amber-800 border-amber-300' };
-      } else {
-        return { status: 'ok', label: `In (${diffDays}j)`, class: 'bg-slate-100 text-slate-600 border-slate-200' };
-      }
-    }
-
-    function updateRelanceCounts() {
-      const relanceList = fiches.filter(f => {
-        const st = getRelanceStatus(f);
-        return st.status === 'overdue' || st.status === 'warning';
-      });
-      
-      const badgeEl = document.getElementById('badge-relances-count');
-      const kpiEl = document.getElementById('alert-kpi-count');
-      if (badgeEl) badgeEl.innerText = relanceList.length;
-      if (kpiEl) kpiEl.innerText = relanceList.length;
-
-      const alertCard = document.getElementById('card-alert-relance');
-      if (alertCard) {
-        if (relanceList.length === 0) {
-          alertCard.classList.add('hidden');
-        } else {
-          alertCard.classList.remove('hidden');
-        }
-      }
-    }
-
-    function filterRelances() {
-      switchTab('table');
-      const relanceFilter = document.getElementById('filter-relance');
-      if (relanceFilter) relanceFilter.value = 'relance';
-      applyFilters();
-    }
-
-    function initDropdowns() {
-      populateSelect('filter-statut', lists.statuts, 'Tous les statuts');
-      populateSelect('filter-typologie', lists.typologies, 'Toutes typologies');
-      populateSelect('filter-thematique', lists.thematiques, 'Toutes les thématiques');
-      populateSelect('filter-redacteur', lists.redacteurs, 'Tous les rédacteurs');
-
-      populateSelect('field-statut', lists.statuts);
-      populateSelect('field-typologie', lists.typologies);
-      populateSelect('field-thematique', lists.thematiques);
-      populateSelect('field-attribue', lists.redacteurs, 'Non attribué');
-      populateSelect('field-relecture1', lists.relecteurs, 'Aucun');
-      populateSelect('field-relecture2', lists.relecteurs, 'Aucun');
-      populateSelect('field-dga', lists.dga, 'Non spécifié');
-    }
-
-    function renderBackoffice() {
-      const keys = ['statuts', 'typologies', 'dga', 'thematiques', 'redacteurs', 'relecteurs'];
-      keys.forEach(key => {
-        const listEl = document.getElementById(`list-bo-${key}`);
-        const countEl = document.getElementById(`count-bo-${key}`);
-        if (!listEl) return;
-
-        countEl.innerText = lists[key].length;
-        listEl.innerHTML = '';
-
-        lists[key].forEach((item, index) => {
-          const li = document.createElement('li');
-          li.className = 'flex items-center justify-between p-2 bg-slate-50 border rounded-lg hover:bg-slate-100 transition';
-          li.innerHTML = `
-            <span class="font-medium text-slate-800">${item}</span>
-            <div class="space-x-1">
-              <button onclick="editBoItem('${key}', ${index})" class="text-sky-600 hover:text-sky-800 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
-              <button onclick="deleteBoItem('${key}', ${index})" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          `;
-          listEl.appendChild(li);
-        });
-      });
-    }
-
-    // Load initial data
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedData = localStorage.getItem('calvados_fiches_data');
-      if (savedData) {
-        try {
-          fiches = JSON.parse(savedData);
-        } catch(e) {
-          fiches = defaultFiches;
-        }
-      } else {
-        fiches = defaultFiches;
-        saveToLocalStorage();
-      }
-
-      // Ensure every item has a typologie default if missing
-      fiches.forEach(f => {
-        if (!f.typologie) f.typologie = "Fiche";
+        `).join('');
       });
 
-      const savedLists = localStorage.getItem('calvados_backoffice_lists');
-      if (savedLists) {
-        try {
-          lists = JSON.parse(savedLists);
-        } catch(e) {}
-      } else {
-        extractInitialListsFromFiches();
-        saveListsToLocalStorage();
-      }
-
-      initDropdowns();
-      renderBackoffice();
-      applyFilters();
-      updateDashboard();
-      initColumnResizable();
-    });
-
-    // Auto-calculate deadline (+15 days from Date Envoi)
-    function autoCalculateDeadline() {
-      const dateEnvoiInput = document.getElementById('field-date-envoi');
-      const dateButoireInput = document.getElementById('field-date-butoire');
-      
-      if (dateEnvoiInput && dateEnvoiInput.value) {
-        const dateEnvoi = new Date(dateEnvoiInput.value);
-        if (!isNaN(dateEnvoi.getTime())) {
-          dateEnvoi.setDate(dateEnvoi.getDate() + 15);
-          const yyyy = dateEnvoi.getFullYear();
-          const mm = String(dateEnvoi.getMonth() + 1).padStart(2, '0');
-          const dd = String(dateEnvoi.getDate()).padStart(2, '0');
-          dateButoireInput.value = `${yyyy}-${mm}-${dd}`;
-        }
-      }
+      lucide.createIcons();
     }
 
-    // Dynamic Column Resizing Logic
-    function initColumnResizable() {
-      const table = document.getElementById('data-table');
-      if (!table) return;
-
-      const cols = table.querySelectorAll('th.resizable');
-      cols.forEach(col => {
-        const resizer = col.querySelector('.resizer');
-        if (!resizer) return;
-
-        let x = 0;
-        let w = 0;
-
-        const mouseDownHandler = function(e) {
-          x = e.clientX;
-          const styles = window.getComputedStyle(col);
-          w = parseInt(styles.width, 10);
-
-          document.addEventListener('mousemove', mouseMoveHandler);
-          document.addEventListener('mouseup', mouseUpHandler);
-          resizer.classList.add('resizing');
-        };
-
-        const mouseMoveHandler = function(e) {
-          const dx = e.clientX - x;
-          col.style.width = `${Math.max(w + dx, 40)}px`;
-        };
-
-        const mouseUpHandler = function() {
-          document.removeEventListener('mousemove', mouseMoveHandler);
-          document.removeEventListener('mouseup', mouseUpHandler);
-          resizer.classList.remove('resizing');
-        };
-
-        resizer.addEventListener('mousedown', mouseDownHandler);
-      });
-    }
-
-    function addBoItem(key) {
-      const input = document.getElementById(`add-bo-${key}`);
+    function addConfigOption(e, key) {
+      e.preventDefault();
+      const input = document.getElementById(`input_add_${key}`);
       const val = input.value.trim();
       if (!val) return;
 
-      if (lists[key].includes(val)) {
-        alert('Cet élément existe déjà dans la liste.');
+      if (!config[key]) config[key] = [];
+      if (config[key].includes(val)) {
+        alert("Cette option existe déjà dans la liste.");
         return;
       }
 
-      lists[key].push(val);
-      lists[key].sort();
+      config[key].push(val);
+      saveConfig();
       input.value = '';
-      
-      saveListsToLocalStorage();
-      renderBackoffice();
-      initDropdowns();
+      renderApp();
     }
 
-    function editBoItem(key, index) {
-      const oldVal = lists[key][index];
-      const newVal = prompt('Modifier la valeur :', oldVal);
-      if (newVal === null) return;
-      const trimmed = newVal.trim();
-      if (!trimmed || trimmed === oldVal) return;
-
-      lists[key][index] = trimmed;
-      lists[key].sort();
-
-      saveListsToLocalStorage();
-      renderBackoffice();
-      initDropdowns();
+    function editConfigOption(key, idx) {
+      const oldVal = config[key][idx];
+      const newVal = prompt("Modifier le libellé de l'option :", oldVal);
+      if (newVal !== null && newVal.trim() !== '' && newVal.trim() !== oldVal) {
+        config[key][idx] = newVal.trim();
+        saveConfig();
+        renderApp();
+      }
     }
 
-    function deleteBoItem(key, index) {
-      const val = lists[key][index];
-      if (confirm(`Voulez-vous supprimer "${val}" de la liste ?`)) {
-        lists[key].splice(index, 1);
-        saveListsToLocalStorage();
+    function deleteConfigOption(key, idx) {
+      if (confirm(`Voulez-vous vraiment supprimer "${config[key][idx]}" de la liste ?`)) {
+        config[key].splice(idx, 1);
+        saveConfig();
+        renderApp();
+      }
+    }
+
+    function moveConfigOption(key, idx, direction) {
+      const newIndex = idx + direction;
+      if (newIndex < 0 || newIndex >= config[key].length) return;
+      const item = config[key].splice(idx, 1)[0];
+      config[key].splice(newIndex, 0, item);
+      saveConfig();
+      renderApp();
+    }
+
+    // Injection des options du Back-Office dans tous les éléments <select> (Filtres + Formulaire)
+    function populateSelectsFromConfig() {
+      // 1. Formulaire principal d'Ajout/Édition
+      fillSelectOptions('field_statut', config.statut, true);
+      fillSelectOptions('field_dga', config.dga, true);
+      fillSelectOptions('field_service', config.service, true);
+      fillSelectOptions('field_typologie', config.typologie, true);
+      fillSelectOptions('field_attribue_a', config.attribue_a, true);
+      fillSelectOptions('field_relecture_1', config.relecture_1, true);
+      fillSelectOptions('field_relecture_2', config.relecture_2, true);
+
+      // 2. Filtres de la barre de recherche
+      fillSelectOptions('filterStatut', config.statut, false, "Tous les statuts");
+      fillSelectOptions('filterDga', config.dga, false, "Toutes les DGA");
+      fillSelectOptions('filterService', config.service, false, "Tous les services");
+    }
+
+    function fillSelectOptions(selectId, optionsArray, includeEmptyOption = false, placeholderText = "-- Sélectionner --") {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+
+      const currentValue = select.value;
+      select.innerHTML = '';
+
+      if (!includeEmptyOption) {
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = placeholderText;
+        select.appendChild(defaultOpt);
+      } else {
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.textContent = '-- Non spécifié --';
+        select.appendChild(emptyOpt);
+      }
+
+      (optionsArray || []).forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt;
+        option.textContent = opt;
+        if (opt === currentValue) option.selected = true;
+        select.appendChild(option);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // NAVIGATION ONGLETS & VUES
+    // -------------------------------------------------------------
+    function switchMainTab(tab) {
+      const dashView = document.getElementById('viewDashboard');
+      const backView = document.getElementById('viewBackoffice');
+      const btnDash = document.getElementById('navTabDashboard');
+      const btnBack = document.getElementById('navTabBackoffice');
+
+      if (tab === 'dashboard') {
+        dashView.classList.remove('hidden');
+        backView.classList.add('hidden');
+        btnDash.className = "flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all bg-brand-600 text-white shadow-sm";
+        btnBack.className = "flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-700/50";
+      } else {
+        dashView.classList.add('hidden');
+        backView.classList.remove('hidden');
+        btnBack.className = "flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all bg-brand-600 text-white shadow-sm";
+        btnDash.className = "flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-700/50";
         renderBackoffice();
-        initDropdowns();
       }
+      lucide.createIcons();
     }
 
-    function restoreDefaultLists() {
-      if (confirm('Voulez-vous réinitialiser toutes les listes du Back-Office à partir des données des fiches ?')) {
-        localStorage.removeItem('calvados_backoffice_lists');
-        extractInitialListsFromFiches();
-        saveListsToLocalStorage();
-        renderBackoffice();
-        initDropdowns();
-      }
-    }
-
-    function populateSelect(id, list, placeholder = '') {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.innerHTML = placeholder ? `<option value="">${placeholder}</option>` : '';
-      list.forEach(item => {
-        el.innerHTML += `<option value="${item}">${item}</option>`;
-      });
-    }
-
-    function switchTab(tab) {
-      const views = ['dashboard', 'table', 'kanban', 'backoffice'];
-      views.forEach(v => {
-        const viewEl = document.getElementById(`view-${v}`);
-        if (viewEl) viewEl.classList.add('hidden');
-      });
-
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('text-sky-600', 'bg-sky-50', 'font-semibold');
-        btn.classList.add('text-slate-600', 'hover:bg-slate-100');
-      });
-
-      const activeBtn = document.getElementById(`tab-${tab}`);
-      if (activeBtn) {
-        activeBtn.classList.add('text-sky-600', 'bg-sky-50', 'font-semibold');
-        activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
-      }
-
-      const activeView = document.getElementById(`view-${tab}`);
-      if (activeView) {
-        activeView.classList.remove('hidden');
-      }
-
-      if (tab === 'dashboard') updateDashboard();
-      if (tab === 'kanban') renderKanban();
-      if (tab === 'backoffice') renderBackoffice();
-    }
-
-    function applyFilters() {
-      const search = document.getElementById('filter-search').value.toLowerCase();
-      const statut = document.getElementById('filter-statut').value;
-      const typologie = document.getElementById('filter-typologie').value;
-      const thematique = document.getElementById('filter-thematique').value;
-      const redacteur = document.getElementById('filter-redacteur').value;
-      const relanceFilter = document.getElementById('filter-relance').value;
-
-      filteredFiches = fiches.filter(f => {
-        const matchesSearch = !search || f.titre.toLowerCase().includes(search) || (f.service && f.service.toLowerCase().includes(search)) || (f.contact && f.contact.toLowerCase().includes(search));
-        const matchesStatut = !statut || f.statut === statut;
-        const matchesType = !typologie || (f.typologie || "Fiche") === typologie;
-        const matchesTheme = !thematique || f.thematique === thematique;
-        const matchesRedac = !redacteur || f.attribue_a === redacteur;
-        
-        const relState = getRelanceStatus(f);
-        let matchesRelance = true;
-        if (relanceFilter === 'relance') matchesRelance = (relState.status === 'overdue' || relState.status === 'warning');
-        if (relanceFilter === 'urgent') matchesRelance = (relState.status === 'overdue');
-
-        return matchesSearch && matchesStatut && matchesType && matchesTheme && matchesRedac && matchesRelance;
-      });
-
-      currentPage = 1;
-      selectedIds.clear();
-      updateBatchActionBar();
+    // -------------------------------------------------------------
+    // RENDU DE L'APPLICATION (TABLEAU & DASHBOARD)
+    // -------------------------------------------------------------
+    function renderApp() {
+      renderStats();
+      populateDynamicSelectOptions();
       renderTable();
-      updateRelanceCounts();
+      lucide.createIcons();
+    }
+
+    // Met à jour les sélecteurs de filtres selon les listes configurées
+    function populateDynamicSelectOptions() {
+      // Filtre Statut
+      const selectStatut = document.getElementById('filterStatut');
+      const valStatut = selectStatut.value;
+      selectStatut.innerHTML = '<option value="">Tous les statuts</option>';
+      (optionsConfig.statut || []).forEach(st => {
+        selectStatut.innerHTML += `<option value="${escapeHtml(st)}" ${st === valStatut ? 'selected' : ''}>${escapeHtml(st)}</option>`;
+      });
+
+      // Filtre Typologie
+      const selectTypo = document.getElementById('filterTypologie');
+      const valTypo = selectTypo.value;
+      selectTypo.innerHTML = '<option value="">Toutes les typologies</option>';
+      (optionsConfig.typologie || []).forEach(tp => {
+        selectTypo.innerHTML += `<option value="${escapeHtml(tp)}" ${tp === valTypo ? 'selected' : ''}>${escapeHtml(tp)}</option>`;
+      });
+
+      // Filtre DGA
+      const selectDga = document.getElementById('filterDga');
+      const valDga = selectDga.value;
+      const dgas = optionsConfig.dga && optionsConfig.dga.length > 0 
+        ? optionsConfig.dga 
+        : [...new Set(items.map(i => i.dga).filter(Boolean))].sort();
+      
+      selectDga.innerHTML = '<option value="">Toutes les DGA</option>';
+      dgas.forEach(dga => {
+        selectDga.innerHTML += `<option value="${escapeHtml(dga)}" ${dga === valDga ? 'selected' : ''}>${escapeHtml(dga)}</option>`;
+      });
+    }
+
+    // Filtrage et Tri des données
+    function getFilteredAndSortedItems() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const filterStatut = document.getElementById('filterStatut').value;
+      const filterTypologie = document.getElementById('filterTypologie').value;
+      const filterPriorite = document.getElementById('filterPriorite').value;
+      const filterDga = document.getElementById('filterDga').value;
+
+      return items.filter(item => {
+        const matchesSearch = !search || 
+          (item.titre && item.titre.toLowerCase().includes(search)) ||
+          (item.id && item.id.toLowerCase().includes(search)) ||
+          (item.attribue_a && item.attribue_a.toLowerCase().includes(search)) ||
+          (item.thematique && item.thematique.toLowerCase().includes(search)) ||
+          (item.contact && item.contact.toLowerCase().includes(search)) ||
+          (item.service && item.service.toLowerCase().includes(search));
+
+        const matchesStatut = !filterStatut || item.statut === filterStatut;
+        const matchesTypologie = !filterTypologie || item.typologie === filterTypologie;
+        const matchesPriorite = !filterPriorite || item.priorite === filterPriorite;
+        const matchesDga = !filterDga || item.dga === filterDga;
+
+        return matchesSearch && matchesStatut && matchesTypologie && matchesPriorite && matchesDga;
+      }).sort((a, b) => {
+        let valA = a[sortColumn] || '';
+        let valB = b[sortColumn] || '';
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+
+        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    // Changement direct du statut depuis le tableau
+    function updateItemStatut(index, newStatut) {
+      if (items[index]) {
+        items[index].statut = newStatut;
+        saveData();
+        renderApp();
+      }
+    }
+
+    // Rendu du tableau HTML
+    function renderTable() {
+      const filteredItems = getFilteredAndSortedItems();
+      const tbody = document.getElementById('tableBody');
+      const infoSpan = document.getElementById('tableInfo');
+
+      infoSpan.textContent = `Affichage de ${filteredItems.length} sur ${items.length} contenu(s)`;
+
+      if (filteredItems.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="p-8 text-center text-slate-400">
+              <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+              <p class="text-sm font-medium">Aucun contenu trouvé</p>
+              <p class="text-xs">Essayez d'ajuster vos filtres ou d'importer un fichier JSON.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const statutOptions = optionsConfig.statut || ['À traiter', 'En réécriture', 'Relecture 1', 'Relecture 2', 'Validé', 'Publié'];
+
+      tbody.innerHTML = filteredItems.map(item => {
+        const originalIndex = items.findIndex(i => i === item);
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="p-4 font-mono font-medium text-xs text-slate-600">${item.id || '-'}</td>
+            <td class="p-4">
+              <div class="font-semibold text-slate-900">${escapeHtml(item.titre || 'Sans titre')}</div>
+              ${item.contact ? `<div class="text-xs text-slate-500 mt-0.5 truncate max-w-[200px]" title="${escapeHtml(item.contact)}"><i data-lucide="mail" class="w-3 h-3 inline"></i> ${escapeHtml(item.contact)}</div>` : ''}
+            </td>
+            <td class="p-4">
+              <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                <i data-lucide="tag" class="w-3 h-3 mr-1 text-slate-400"></i> ${escapeHtml(item.typologie || 'Non défini')}
+              </span>
+            </td>
+            <td class="p-4">
+              <div class="text-slate-800 font-medium">${escapeHtml(item.thematique || '-')}</div>
+              <div class="text-xs text-slate-400">${escapeHtml(item.dga || '')} ${item.service ? '• ' + escapeHtml(item.service) : ''}</div>
+            </td>
+            <td class="p-4 text-xs space-y-0.5">
+              <div><strong class="text-slate-600">Rédac :</strong> ${escapeHtml(item.attribue_a || '-')}</div>
+              <div class="text-slate-500"><strong>Rel 1 :</strong> ${escapeHtml(item.relecture_1 || '-')}</div>
+              <div class="text-slate-500"><strong>Rel 2 :</strong> ${escapeHtml(item.relecture_2 || '-')}</div>
+            </td>
+            <td class="p-4 text-xs">
+              <div><span class="text-slate-400">Envoi :</span> ${item.date_envoi || '-'}</div>
+              <div><span class="text-slate-400">Butoire :</span> <strong class="${isOverdue(item.date_butoire) ? 'text-rose-600 font-bold' : 'text-slate-700'}">${item.date_butoire || '-'}</strong></div>
+            </td>
+            <td class="p-4">
+              ${getPriorityBadge(item.priorite)}
+            </td>
+            <td class="p-4">
+              <div class="relative inline-block w-full min-w-[130px]">
+                <select onchange="updateItemStatut(${originalIndex}, this.value)" class="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer ${getStatusBadgeStyle(item.statut)}">
+                  ${statutOptions.map(st => `<option value="${escapeHtml(st)}" ${st === item.statut ? 'selected' : ''}>${escapeHtml(st)}</option>`).join('')}
+                </select>
+              </div>
+            </td>
+            <td class="p-4 text-right space-x-1">
+              <button onclick="editItem(${originalIndex})" class="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Éditer">
+                <i data-lucide="edit" class="w-4 h-4"></i>
+              </button>
+              <button onclick="deleteItem(${originalIndex})" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Supprimer">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function getStatusBadgeStyle(statut) {
+      const styles = {
+        'À traiter': 'bg-slate-100 text-slate-700 border-slate-300',
+        'En réécriture': 'bg-blue-100 text-blue-800 border-blue-300',
+        'Relecture 1': 'bg-purple-100 text-purple-800 border-purple-300',
+        'Relecture 2': 'bg-indigo-100 text-indigo-800 border-indigo-300',
+        'Validé': 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        'Publié': 'bg-teal-100 text-teal-800 border-teal-300'
+      };
+      return styles[statut] || 'bg-slate-100 text-slate-700 border-slate-300';
+    }
+
+    function renderStats() {
+      const total = items.length;
+      const counts = {
+        'À traiter': 0,
+        'En réécriture': 0,
+        'Relecture': 0,
+        'Validé': 0,
+        'Publié': 0
+      };
+
+      items.forEach(item => {
+        if (item.statut === 'Relecture 1' || item.statut === 'Relecture 2') {
+          counts['Relecture']++;
+        } else if (counts[item.statut] !== undefined) {
+          counts[item.statut]++;
+        }
+      });
+
+      const container = document.getElementById('statsContainer');
+      container.innerHTML = `
+        ${createStatCard('Total Contenus', total, 'layers', 'bg-slate-100 text-slate-700')}
+        ${createStatCard('À traiter', counts['À traiter'], 'clock', 'bg-amber-50 text-amber-700')}
+        ${createStatCard('En réécriture', counts['En réécriture'], 'edit-2', 'bg-blue-50 text-blue-700')}
+        ${createStatCard('En Relecture', counts['Relecture'], 'eye', 'bg-purple-50 text-purple-700')}
+        ${createStatCard('Validés', counts['Validé'], 'check-circle', 'bg-emerald-50 text-emerald-700')}
+        ${createStatCard('Publiés', counts['Publié'], 'globe', 'bg-teal-50 text-teal-700')}
+      `;
+    }
+
+    function createStatCard(title, count, icon, colorClass) {
+      return `
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-semibold text-slate-500">${title}</p>
+            <p class="text-xl font-bold text-slate-900 mt-0.5">${count}</p>
+          </div>
+          <div class="p-2 rounded-lg ${colorClass}">
+            <i data-lucide="${icon}" class="w-4 h-4"></i>
+          </div>
+        </div>
+      `;
+    }
+
+    function getFilteredAndSortedItems() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const filterStatut = document.getElementById('filterStatut').value;
+      const filterPriorite = document.getElementById('filterPriorite').value;
+      const filterDga = document.getElementById('filterDga').value;
+      const filterService = document.getElementById('filterService').value;
+
+      return items.filter(item => {
+        const matchesSearch = !search || 
+          (item.titre && item.titre.toLowerCase().includes(search)) ||
+          (item.id && item.id.toLowerCase().includes(search)) ||
+          (item.attribue_a && item.attribue_a.toLowerCase().includes(search)) ||
+          (item.thematique && item.thematique.toLowerCase().includes(search)) ||
+          (item.contact && item.contact.toLowerCase().includes(search)) ||
+          (item.service && item.service.toLowerCase().includes(search));
+
+        const matchesStatut = !filterStatut || item.statut === filterStatut;
+        const matchesPriorite = !filterPriorite || item.priorite === filterPriorite;
+        const matchesDga = !filterDga || item.dga === filterDga;
+        const matchesService = !filterService || item.service === filterService;
+
+        return matchesSearch && matchesStatut && matchesPriorite && matchesDga && matchesService;
+      }).sort((a, b) => {
+        let valA = a[sortColumn] || '';
+        let valB = b[sortColumn] || '';
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+
+        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
     }
 
     function renderTable() {
-      const tbody = document.getElementById('table-body');
-      tbody.innerHTML = '';
+      const filteredItems = getFilteredAndSortedItems();
+      const tbody = document.getElementById('tableBody');
+      const infoSpan = document.getElementById('tableInfo');
 
-      document.getElementById('total-count').innerText = fiches.length;
-      document.getElementById('showing-count').innerText = `Affichage de ${filteredFiches.length} sur ${fiches.length} fiches`;
+      infoSpan.textContent = `Affichage de ${filteredItems.length} sur ${items.length} contenu(s)`;
 
-      const start = (currentPage - 1) * pageSize;
-      const pageItems = filteredFiches.slice(start, start + pageSize);
-
-      // Update header select-all checkbox state
-      const selectAllCb = document.getElementById('select-all');
-      if (selectAllCb) {
-        selectAllCb.checked = pageItems.length > 0 && pageItems.every(item => selectedIds.has(item.id));
+      if (filteredItems.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="p-8 text-center text-slate-400">
+              <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+              <p class="text-sm font-medium">Aucun contenu trouvé</p>
+              <p class="text-xs">Ajustez vos filtres ou effectuez une nouvelle saisie.</p>
+            </td>
+          </tr>
+        `;
+        return;
       }
 
-      pageItems.forEach(item => {
-        const rel = getRelanceStatus(item);
-        const isChecked = selectedIds.has(item.id);
-        
-        let statusBadge = '';
-        if (item.statut === 'En cours réécriture') statusBadge = '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">En cours</span>';
-        else if (item.statut === 'Envoyé service') statusBadge = '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-semibold">Envoyé service</span>';
-        else if (item.statut === 'Terminé') statusBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">Terminé</span>';
-        else statusBadge = `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-semibold">${item.statut}</span>`;
+      tbody.innerHTML = filteredItems.map(item => {
+        const originalIndex = items.findIndex(i => i === item);
 
-        let prioBadge = '';
-        if (item.priorite == 1) prioBadge = '<span class="text-red-600 font-bold">P1</span>';
-        else if (item.priorite == 2) prioBadge = '<span class="text-amber-600 font-semibold">P2</span>';
-        else prioBadge = '<span class="text-slate-400">P3</span>';
-
-        const typeBadge = item.typologie === 'Mission' 
-          ? '<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-bold text-[10px]">Mission</span>'
-          : '<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium text-[10px]">Fiche</span>';
-
-        const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-50 transition border-b border-slate-100 ${isChecked ? 'bg-sky-50/60' : ''}`;
-        tr.innerHTML = `
-          <td class="p-3 text-center">
-            <input type="checkbox" onchange="toggleSelectFiche(${item.id}, this.checked)" ${isChecked ? 'checked' : ''} class="rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer">
-          </td>
-          <td class="p-3 text-center">${prioBadge}</td>
-          <td class="p-3">${typeBadge}</td>
-          <td class="p-3 font-semibold text-slate-900 max-w-xs truncate" title="${item.titre}">${item.titre}</td>
-          <td class="p-3 text-slate-600 max-w-[140px] truncate" title="${item.thematique}">${item.thematique}</td>
-          <td class="p-3">${statusBadge}</td>
-          <td class="p-3 text-slate-700">${item.attribue_a || '-'}</td>
-          <td class="p-3 text-slate-600">
-            <div class="font-medium">${item.service || '-'}</div>
-            <div class="text-[10px] text-slate-400">${item.contact || ''}</div>
-          </td>
-          <td class="p-3 text-slate-500">${item.date_envoi || '-'}</td>
-          <td class="p-3 font-semibold">
-            ${item.date_butoire ? `<div>${item.date_butoire}</div>` : '<span class="text-slate-300">-</span>'}
-            ${rel.status !== 'none' ? `<span class="inline-block mt-0.5 text-[10px] px-1.5 py-0.2 border rounded-md font-bold ${rel.class}">${rel.label}</span>` : ''}
-          </td>
-          <td class="p-3 text-right space-x-1">
-            ${item.statut === 'Envoyé service' ? `
-              <button onclick="openRelanceModal(${item.id})" class="p-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg transition" title="Relancer le service">
-                <i class="fa-solid fa-paper-plane"></i>
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="p-3.5 font-mono font-semibold text-slate-600 text-[11px]">${escapeHtml(item.id || '-')}</td>
+            <td class="p-3.5">
+              <div class="font-bold text-slate-900">${escapeHtml(item.titre || 'Sans titre')}</div>
+              <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 font-medium">${escapeHtml(item.typologie || 'Non défini')}</span>
+                ${item.contact ? `<span class="truncate max-w-[200px]" title="${escapeHtml(item.contact)}"><i data-lucide="mail" class="w-3 h-3 inline"></i> ${escapeHtml(item.contact)}</span>` : ''}
+              </div>
+            </td>
+            <td class="p-3.5">
+              <div class="text-slate-800 font-semibold">${escapeHtml(item.thematique || '-')}</div>
+              <div class="text-[11px] text-slate-400">${escapeHtml(item.dga || '')} ${item.service ? '• ' + escapeHtml(item.service) : ''}</div>
+            </td>
+            <td class="p-3.5 text-[11px] space-y-0.5">
+              <div><strong class="text-slate-700">Rédac :</strong> ${escapeHtml(item.attribue_a || '-')}</div>
+              <div class="text-slate-500"><strong>Rel 1 :</strong> ${escapeHtml(item.relecture_1 || '-')}</div>
+              <div class="text-slate-500"><strong>Rel 2 :</strong> ${escapeHtml(item.relecture_2 || '-')}</div>
+            </td>
+            <td class="p-3.5 text-[11px]">
+              <div><span class="text-slate-400">Envoi :</span> ${item.date_envoi || '-'}</div>
+              <div><span class="text-slate-400">Lim :</span> <strong class="${isOverdue(item.date_butoire) ? 'text-rose-600 font-bold' : 'text-slate-700'}">${item.date_butoire || '-'}</strong></div>
+            </td>
+            <td class="p-3.5">
+              ${getPriorityBadge(item.priorite)}
+            </td>
+            <td class="p-3.5">
+              ${getStatusBadge(item.statut)}
+            </td>
+            <td class="p-3.5 text-right space-x-1">
+              <button onclick="editItem(${originalIndex})" class="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Éditer">
+                <i data-lucide="edit" class="w-4 h-4"></i>
               </button>
-            ` : ''}
-            <button onclick="editFiche(${item.id})" class="p-1.5 bg-slate-100 text-slate-700 hover:bg-sky-50 hover:text-sky-600 rounded-lg transition" title="Éditer">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </button>
-          </td>
+              <button onclick="deleteItem(${originalIndex})" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Supprimer">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </td>
+          </tr>
         `;
-        tbody.appendChild(tr);
+      }).join('');
+    }
+
+    function getPriorityBadge(priorite) {
+      const styles = {
+        'Urgente': 'bg-rose-100 text-rose-800 border-rose-200',
+        'Haute': 'bg-orange-100 text-orange-800 border-orange-200',
+        'Moyenne': 'bg-amber-100 text-amber-800 border-amber-200',
+        'Basse': 'bg-slate-100 text-slate-700 border-slate-200'
+      };
+      const style = styles[priorite] || styles['Basse'];
+      return `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${style}">${priorite || 'Basse'}</span>`;
+    }
+
+    function getStatusBadge(statut) {
+      const styles = {
+        'À traiter': 'bg-slate-100 text-slate-700 border-slate-200',
+        'En réécriture': 'bg-blue-100 text-blue-800 border-blue-200',
+        'Relecture 1': 'bg-purple-100 text-purple-800 border-purple-200',
+        'Relecture 2': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+        'Validé': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        'Publié': 'bg-teal-100 text-teal-800 border-teal-200'
+      };
+      const style = styles[statut] || 'bg-slate-100 text-slate-700 border-slate-200';
+      return `<span class="px-2 py-0.5 text-[10px] font-bold rounded-lg border ${style}">${statut || 'À traiter'}</span>`;
+    }
+
+    function isOverdue(dateStr) {
+      if (!dateStr) return false;
+      const today = new Date().toISOString().split('T')[0];
+      return dateStr < today;
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function sortTable(column) {
+      if (sortColumn === column) {
+        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortColumn = column;
+        sortDirection = 'asc';
+      }
+      renderApp();
+    }
+
+    // -------------------------------------------------------------
+    // LISTENERS ET GESTIONNAIRES D'ÉVÉNEMENTS
+    // -------------------------------------------------------------
+    function setupEventListeners() {
+      // Écouteurs de filtres
+      document.getElementById('searchInput').addEventListener('input', renderApp);
+      document.getElementById('filterStatut').addEventListener('change', renderApp);
+      document.getElementById('filterPriorite').addEventListener('change', renderApp);
+      document.getElementById('filterDga').addEventListener('change', renderApp);
+      document.getElementById('filterService').addEventListener('change', renderApp);
+
+      document.getElementById('btnClearFilters').addEventListener('click', () => {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('filterStatut').value = '';
+        document.getElementById('filterPriorite').value = '';
+        document.getElementById('filterDga').value = '';
+        document.getElementById('filterService').value = '';
+        renderApp();
       });
 
-      renderPagination(filteredFiches.length);
-    }
-
-    function renderPagination(totalItems) {
-      const totalPages = Math.ceil(totalItems / pageSize) || 1;
-      const paginationContainer = document.getElementById('pagination');
-      if (!paginationContainer) return;
-      paginationContainer.innerHTML = '';
-
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.className = `px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-          i === currentPage
-            ? 'bg-sky-600 text-white'
-            : 'bg-white border text-slate-600 hover:bg-slate-100'
-        }`;
-        btn.innerText = i;
-        btn.onclick = () => {
-          currentPage = i;
-          renderTable();
-        };
-        paginationContainer.appendChild(btn);
-      }
-    }
-
-    // Selection & Batch Operations
-    function toggleSelectFiche(id, isChecked) {
-      if (isChecked) {
-        selectedIds.add(id);
-      } else {
-        selectedIds.delete(id);
-      }
-      updateBatchActionBar();
-      renderTable();
-    }
-
-    function toggleSelectAll(masterCb) {
-      const start = (currentPage - 1) * pageSize;
-      const pageItems = filteredFiches.slice(start, start + pageSize);
-
-      pageItems.forEach(item => {
-        if (masterCb.checked) {
-          selectedIds.add(item.id);
-        } else {
-          selectedIds.delete(item.id);
+      document.getElementById('btnClearAll').addEventListener('click', () => {
+        if (confirm("Voulez-vous vraiment supprimer TOUS les contenus ?")) {
+          items = [];
+          saveData();
+          renderApp();
         }
       });
-      updateBatchActionBar();
-      renderTable();
+
+      // Modales
+      document.getElementById('btnOpenImport').addEventListener('click', () => openModal('modalImport'));
+      document.getElementById('btnOpenCreate').addEventListener('click', () => {
+        resetForm();
+        document.getElementById('modalFormTitle').textContent = "Nouveau contenu";
+        openModal('modalForm');
+      });
+
+      document.querySelectorAll('.btnCloseModal').forEach(btn => {
+        btn.addEventListener('click', () => {
+          closeModal('modalImport');
+          closeModal('modalForm');
+        });
+      });
+
+      // Formulaire principal
+      document.getElementById('itemForm').addEventListener('submit', handleFormSubmit);
+
+      // Actions Import / Export
+      document.getElementById('btnProcessImport').addEventListener('click', handleJsonImport);
+      document.getElementById('btnExportJSON').addEventListener('click', exportJSON);
+      document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+
+      // Actions Back-office Configuration Import/Export/Reset
+      document.getElementById('btnExportConfig').addEventListener('click', exportConfigJSON);
+      document.getElementById('btnImportConfig').addEventListener('click', () => document.getElementById('inputFileConfig').click());
+      document.getElementById('inputFileConfig').addEventListener('change', importConfigJSON);
+      document.getElementById('btnResetConfig').addEventListener('click', () => {
+        if (confirm("Réinitialiser toutes les listes déroulantes avec les options par défaut ?")) {
+          config = JSON.parse(JSON.stringify(defaultConfig));
+          saveConfig();
+          renderApp();
+        }
+      });
+
+      // Drag & Drop Import
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+
+      dropZone.addEventListener('click', () => fileInput.click());
+      ['dragenter', 'dragover'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          dropZone.classList.add('border-brand-500', 'bg-brand-50/50');
+        });
+      });
+      ['dragleave', 'drop'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('border-brand-500', 'bg-brand-50/50');
+        });
+      });
+      dropZone.addEventListener('drop', (e) => {
+        if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
+      });
     }
 
-    function deselectAll() {
-      selectedIds.clear();
-      updateBatchActionBar();
-      renderTable();
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
     }
 
-    function updateBatchActionBar() {
-      const actionBar = document.getElementById('batch-action-bar');
-      const countEl = document.getElementById('selected-count');
-      if (!actionBar || !countEl) return;
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
 
-      countEl.innerText = selectedIds.size;
-      if (selectedIds.size > 0) {
-        actionBar.classList.remove('hidden');
-      } else {
-        actionBar.classList.add('hidden');
+    // -------------------------------------------------------------
+    // IMPORTATION MASSIVE JSON CONTENUS
+    // -------------------------------------------------------------
+    function handleFileSelect(file) {
+      if (!file.name.endsWith('.json')) {
+        showImportFeedback("Veuillez sélectionner un fichier .json valide.", "text-rose-600");
+        return;
       }
-    }
-
-    function deleteBatch() {
-      if (selectedIds.size === 0) return;
-      
-      const count = selectedIds.size;
-      if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement les ${count} fiche(s) sélectionnée(s) ?`)) {
-        fiches = fiches.filter(f => !selectedIds.has(f.id));
-        selectedIds.clear();
-        saveToLocalStorage();
-        applyFilters();
-      }
-    }
-
-    function renderKanban() {
-      const encours = fiches.filter(f => f.statut === 'En cours réécriture');
-      const envoye = fiches.filter(f => f.statut === 'Envoyé service');
-      const termine = fiches.filter(f => f.statut === 'Terminé');
-
-      document.getElementById('kanban-count-encours').innerText = encours.length;
-      document.getElementById('kanban-count-envoye').innerText = envoye.length;
-      document.getElementById('kanban-count-termine').innerText = termine.length;
-
-      const makeCard = (f) => {
-        const rel = getRelanceStatus(f);
-        return `
-          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition space-y-2">
-            <div class="flex items-start justify-between gap-2">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">${f.thematique}</span>
-              <span class="text-[10px] font-bold text-slate-400">P${f.priorite}</span>
-            </div>
-            <h4 class="font-bold text-xs text-slate-800 leading-snug cursor-pointer hover:text-sky-600" onclick="editFiche(${f.id})">${f.titre}</h4>
-            <div class="text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-100">
-              <div class="flex items-center space-x-1">
-                <i class="fa-solid fa-user text-[10px] text-slate-400"></i>
-                <span>${f.attribue_a || 'Non assigné'}</span>
-              </div>
-              ${f.service ? `<span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 truncate max-w-[100px]">${f.service}</span>` : ''}
-            </div>
-            ${rel.status !== 'none' ? `
-              <div class="pt-1 flex items-center justify-between">
-                <span class="text-[10px] px-2 py-0.5 border rounded-md font-bold ${rel.class}">${rel.label}</span>
-                ${f.statut === 'Envoyé service' ? `<button onclick="openRelanceModal(${f.id})" class="text-[10px] text-amber-700 font-bold hover:underline"><i class="fa-solid fa-paper-plane mr-1"></i>Relancer</button>` : ''}
-              </div>
-            ` : ''}
-          </div>
-        `;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('jsonTextArea').value = e.target.result;
+        showImportFeedback(`Fichier "${file.name}" chargé. Cliquez sur Valider.`, "text-emerald-600");
       };
-
-      document.getElementById('kanban-encours').innerHTML = encours.map(makeCard).join('');
-      document.getElementById('kanban-envoye').innerHTML = envoye.map(makeCard).join('');
-      document.getElementById('kanban-termine').innerHTML = termine.map(makeCard).join('');
+      reader.readAsText(file);
     }
 
-    function updateDashboard() {
-      const total = fiches.length;
-      const encours = fiches.filter(f => f.statut === 'En cours réécriture').length;
-      const envoye = fiches.filter(f => f.statut === 'Envoyé service').length;
-      const termine = fiches.filter(f => f.statut === 'Terminé').length;
+    function handleJsonImport() {
+      const rawJson = document.getElementById('jsonTextArea').value.trim();
+      const importMode = document.querySelector('input[name="importMode"]:checked').value;
 
-      document.getElementById('kpi-total').innerText = total;
-      document.getElementById('kpi-encours').innerText = encours;
-      document.getElementById('kpi-envoye').innerText = envoye;
-      document.getElementById('kpi-termine').innerText = termine;
-
-      updateRelanceCounts();
-
-      // Chart 1: Statuts
-      if (chartStatut) chartStatut.destroy();
-      const ctxStatut = document.getElementById('chartStatut');
-      if (ctxStatut) {
-        chartStatut = new Chart(ctxStatut, {
-          type: 'doughnut',
-          data: {
-            labels: ['En cours réécriture', 'Envoyé service', 'Terminé'],
-            datasets: [{
-              data: [encours, envoye, termine],
-              backgroundColor: ['#f59e0b', '#3b82f6', '#10b981']
-            }]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-        });
+      if (!rawJson) {
+        showImportFeedback("Veuillez coller du JSON ou charger un fichier.", "text-rose-600");
+        return;
       }
 
-      // Chart 2: Rédacteurs
-      const redacCounts = {};
-      fiches.forEach(f => {
-        const name = f.attribue_a || 'Non attribué';
-        redacCounts[name] = (redacCounts[name] || 0) + 1;
+      try {
+        const parsed = JSON.parse(rawJson);
+        const importedArray = Array.isArray(parsed) ? parsed : [parsed];
+
+        const sanitized = importedArray.map((item, idx) => ({
+          id: String(item.id || `IMPORT-${Date.now()}-${idx+1}`),
+          titre: String(item.titre || 'Titre non spécifié'),
+          thematique: String(item.thematique || ''),
+          priorite: ['Basse', 'Moyenne', 'Haute', 'Urgente'].includes(item.priorite) ? item.priorite : 'Moyenne',
+          statut: String(item.statut || config.statut[0] || 'À traiter'),
+          attribue_a: String(item.attribue_a || ''),
+          relecture_1: String(item.relecture_1 || ''),
+          relecture_2: String(item.relecture_2 || ''),
+          date_envoi: String(item.date_envoi || ''),
+          date_butoire: String(item.date_butoire || ''),
+          dga: String(item.dga || ''),
+          service: String(item.service || ''),
+          contact: String(item.contact || ''),
+          commentaires: String(item.commentaires || ''),
+          typologie: String(item.typologie || config.typologie[0] || 'Page d\'information')
+        }));
+
+        if (importMode === 'replace') {
+          items = sanitized;
+        } else {
+          items = [...items, ...sanitized];
+        }
+
+        saveData();
+        renderApp();
+        closeModal('modalImport');
+        document.getElementById('jsonTextArea').value = '';
+        showImportFeedback('', '');
+      } catch (err) {
+        showImportFeedback("Erreur de syntaxe JSON : " + err.message, "text-rose-600");
+      }
+    }
+
+    function showImportFeedback(msg, colorClass) {
+      const fb = document.getElementById('importFeedback');
+      fb.textContent = msg;
+      fb.className = `text-xs font-medium ${colorClass}`;
+    }
+
+    function setupSampleJsonDisplay() {
+      const sample = [{
+        "id": "PAGE-101",
+        "titre": "Inscription à la restauration scolaire",
+        "thematique": "Éducation",
+        "priorite": "Haute",
+        "statut": "À traiter",
+        "attribue_a": "Sophie Martin",
+        "relecture_1": "Pierre Durand",
+        "relecture_2": "Responsable Éditorial",
+        "date_envoi": "2026-11-03",
+        "date_butoire": "2026-11-25",
+        "dga": "DGA Services à la Population",
+        "service": "Direction de l'Éducation",
+        "contact": "education@ville.fr",
+        "commentaires": "Simplifier les étapes en ligne.",
+        "typologie": "Démarche / Procédure"
+      }];
+      const sampleStr = JSON.stringify(sample, null, 2);
+      document.getElementById('jsonSampleCode').textContent = sampleStr;
+
+      document.getElementById('btnCopySample').addEventListener('click', () => {
+        const textarea = document.createElement('textarea');
+        textarea.value = sampleStr;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        const btn = document.getElementById('btnCopySample');
+        btn.innerHTML = `<i data-lucide="check" class="w-3 h-3"></i> Copié !`;
+        lucide.createIcons();
+        setTimeout(() => {
+          btn.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i> Copier l'exemple`;
+          lucide.createIcons();
+        }, 2000);
       });
-
-      if (chartRedacteur) chartRedacteur.destroy();
-      const ctxRedac = document.getElementById('chartRedacteur');
-      if (ctxRedac) {
-        chartRedacteur = new Chart(ctxRedac, {
-          type: 'bar',
-          data: {
-            labels: Object.keys(redacCounts),
-            datasets: [{
-              label: 'Nombre de fiches',
-              data: Object.values(redacCounts),
-              backgroundColor: '#0284c7'
-            }]
-          },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
-      }
-
-      // Chart 3: Thématiques
-      const themeCounts = {};
-      fiches.forEach(f => {
-        const t = f.thematique || 'Non spécifié';
-        themeCounts[t] = (themeCounts[t] || 0) + 1;
-      });
-
-      if (chartThematique) chartThematique.destroy();
-      const ctxTheme = document.getElementById('chartThematique');
-      if (ctxTheme) {
-        chartThematique = new Chart(ctxTheme, {
-          type: 'bar',
-          data: {
-            labels: Object.keys(themeCounts),
-            datasets: [{
-              label: 'Fiches par Thématique',
-              data: Object.values(themeCounts),
-              backgroundColor: '#0d9488'
-            }]
-          },
-          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
-      }
     }
 
-    // Modal Actions
-    function openModal() {
-      document.getElementById('form-fiche').reset();
-      document.getElementById('field-id').value = '';
-      document.getElementById('modal-title').innerText = 'Créer une nouvelle fiche';
-      document.getElementById('btn-delete').classList.add('hidden');
-      document.getElementById('modal-fiche').classList.remove('hidden');
+    // -------------------------------------------------------------
+    // GESTION FORMULAIRE AJOUT / ÉDITION
+    // -------------------------------------------------------------
+    function resetForm() {
+      document.getElementById('field_index').value = '';
+      document.getElementById('field_id').value = `PAGE-${Math.floor(100 + Math.random() * 900)}`;
+      document.getElementById('field_titre').value = '';
+      document.getElementById('field_thematique').value = '';
+      document.getElementById('field_priorite').value = 'Moyenne';
+      document.getElementById('field_contact').value = '';
+      document.getElementById('field_date_envoi').value = new Date().toISOString().split('T')[0];
+      document.getElementById('field_date_butoire').value = '';
+      document.getElementById('field_commentaires').value = '';
+
+      // Valeurs par défaut des selects
+      document.getElementById('field_statut').value = config.statut[0] || '';
+      document.getElementById('field_dga').value = config.dga[0] || '';
+      document.getElementById('field_service').value = config.service[0] || '';
+      document.getElementById('field_typologie').value = config.typologie[0] || '';
+      document.getElementById('field_attribue_a').value = config.attribue_a[0] || '';
+      document.getElementById('field_relecture_1').value = config.relecture_1[0] || '';
+      document.getElementById('field_relecture_2').value = config.relecture_2[0] || '';
     }
 
-    function closeModal() {
-      const modal = document.getElementById('modal-fiche');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function editFiche(id) {
-      const item = fiches.find(f => f.id === id);
+    function editItem(index) {
+      const item = items[index];
       if (!item) return;
 
-      document.getElementById('field-id').value = item.id;
-      document.getElementById('field-titre').value = item.titre;
-      document.getElementById('field-typologie').value = item.typologie || 'Fiche';
-      document.getElementById('field-thematique').value = item.thematique;
-      document.getElementById('field-priorite').value = item.priorite || 2;
-      document.getElementById('field-statut').value = item.statut;
-      document.getElementById('field-attribue').value = item.attribue_a || '';
-      document.getElementById('field-relecture1').value = item.relecture_1 || '';
-      document.getElementById('field-relecture2').value = item.relecture_2 || '';
-      document.getElementById('field-date-envoi').value = item.date_envoi || '';
-      document.getElementById('field-date-butoire').value = item.date_butoire || '';
-      document.getElementById('field-dga').value = item.dga || '';
-      document.getElementById('field-service').value = item.service || '';
-      document.getElementById('field-contact').value = item.contact || '';
-      document.getElementById('field-commentaires').value = item.commentaires || '';
+      document.getElementById('field_index').value = index;
+      document.getElementById('field_id').value = item.id || '';
+      document.getElementById('field_titre').value = item.titre || '';
+      document.getElementById('field_thematique').value = item.thematique || '';
+      document.getElementById('field_priorite').value = item.priorite || 'Moyenne';
+      document.getElementById('field_contact').value = item.contact || '';
+      document.getElementById('field_date_envoi').value = item.date_envoi || '';
+      document.getElementById('field_date_butoire').value = item.date_butoire || '';
+      document.getElementById('field_commentaires').value = item.commentaires || '';
 
-      document.getElementById('modal-title').innerText = `Éditer : ${item.titre}`;
-      document.getElementById('btn-delete').classList.remove('hidden');
-      document.getElementById('modal-fiche').classList.remove('hidden');
+      // Selects dynamiques
+      document.getElementById('field_statut').value = item.statut || '';
+      document.getElementById('field_dga').value = item.dga || '';
+      document.getElementById('field_service').value = item.service || '';
+      document.getElementById('field_typologie').value = item.typologie || '';
+      document.getElementById('field_attribue_a').value = item.attribue_a || '';
+      document.getElementById('field_relecture_1').value = item.relecture_1 || '';
+      document.getElementById('field_relecture_2').value = item.relecture_2 || '';
+
+      document.getElementById('modalFormTitle').textContent = "Éditer le contenu #" + (item.id || '');
+      openModal('modalForm');
     }
 
-    function saveFiche(e) {
+    function deleteItem(index) {
+      if (confirm("Supprimer ce contenu ?")) {
+        items.splice(index, 1);
+        saveData();
+        renderApp();
+      }
+    }
+
+    function handleFormSubmit(e) {
       e.preventDefault();
-      const id = document.getElementById('field-id').value;
+      const indexStr = document.getElementById('field_index').value;
 
-      const payload = {
-        id: id ? parseInt(id) : Date.now(),
-        titre: document.getElementById('field-titre').value,
-        typologie: document.getElementById('field-typologie').value,
-        thematique: document.getElementById('field-thematique').value,
-        priorite: document.getElementById('field-priorite').value,
-        statut: document.getElementById('field-statut').value,
-        attribue_a: document.getElementById('field-attribue').value,
-        relecture_1: document.getElementById('field-relecture1').value,
-        relecture_2: document.getElementById('field-relecture2').value,
-        date_envoi: document.getElementById('field-date-envoi').value,
-        date_butoire: document.getElementById('field-date-butoire').value,
-        dga: document.getElementById('field-dga').value,
-        service: document.getElementById('field-service').value,
-        contact: document.getElementById('field-contact').value,
-        commentaires: document.getElementById('field-commentaires').value
+      const itemData = {
+        id: document.getElementById('field_id').value || `PAGE-${Date.now()}`,
+        titre: document.getElementById('field_titre').value,
+        thematique: document.getElementById('field_thematique').value,
+        typologie: document.getElementById('field_typologie').value,
+        priorite: document.getElementById('field_priorite').value,
+        statut: document.getElementById('field_statut').value,
+        dga: document.getElementById('field_dga').value,
+        service: document.getElementById('field_service').value,
+        contact: document.getElementById('field_contact').value,
+        attribue_a: document.getElementById('field_attribue_a').value,
+        relecture_1: document.getElementById('field_relecture_1').value,
+        relecture_2: document.getElementById('field_relecture_2').value,
+        date_envoi: document.getElementById('field_date_envoi').value,
+        date_butoire: document.getElementById('field_date_butoire').value,
+        commentaires: document.getElementById('field_commentaires').value
       };
 
-      if (id) {
-        const index = fiches.findIndex(f => f.id === parseInt(id));
-        if (index !== -1) fiches[index] = payload;
+      if (indexStr !== '') {
+        items[parseInt(indexStr, 10)] = itemData;
       } else {
-        fiches.unshift(payload);
+        items.push(itemData);
       }
 
-      saveToLocalStorage();
-      initDropdowns();
-      applyFilters();
-      closeModal();
+      saveData();
+      renderApp();
+      closeModal('modalForm');
     }
 
-    function deleteFiche() {
-      const id = parseInt(document.getElementById('field-id').value);
-      if (confirm('Êtes-vous sûr de vouloir supprimer cette fiche ?')) {
-        fiches = fiches.filter(f => f.id !== id);
-        saveToLocalStorage();
-        applyFilters();
-        closeModal();
-      }
+    // -------------------------------------------------------------
+    // EXPORTATIONS & IMPORTATION DE CONFIGURATION BACK-OFFICE
+    // -------------------------------------------------------------
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
+      downloadFile(dataStr, `reecritures_contenus_${getTodayDateStr()}.json`);
     }
 
-    // Relance Modal
-    function openRelanceModal(id) {
-      const item = fiches.find(f => f.id === id);
-      if (!item) return;
+    function exportCSV() {
+      if (items.length === 0) return;
+      const headers = ["id", "titre", "thematique", "priorite", "statut", "attribue_a", "relecture_1", "relecture_2", "date_envoi", "date_butoire", "dga", "service", "contact", "commentaires", "typologie"];
+      const csvRows = [headers.join(";")];
 
-      const toText = `${item.contact ? item.contact + ' - ' : ''}${item.service || 'Service Référent'} (${item.dga || 'DGA'})`;
-      const subject = `[Relance] Relecture de la fiche aide : ${item.titre}`;
-      const body = `Bonjour ${item.contact || 'l\'équipe'},\n\nSauf erreur de notre part, nous sommes toujours dans l'attente de votre retour de validation pour la fiche d'aide suivante :\n\n📌 Titre : ${item.titre}\n🏛️ Service : ${item.service || 'N/A'}\n🗓️ Date d'envoi initiale : ${item.date_envoi || 'N/A'}\n🚨 Date limite recommandée : ${item.date_butoire || 'Au plus vite'}\n\nPourriez-vous nous indiquer si les adaptations en langage clair vous conviennent ou nous faire part de vos ajustements ?\n\nEn vous remerciant par avance pour votre collaboration.\n\nCordialement,\nL'équipe de refonte des aides - Département du Calvados`;
+      items.forEach(item => {
+        const values = headers.map(header => {
+          const val = (item[header] || '').toString().replace(/"/g, '""');
+          return `"${val}"`;
+        });
+        csvRows.push(values.join(";"));
+      });
 
-      document.getElementById('relance-to').value = toText;
-      document.getElementById('relance-subject').value = subject;
-      document.getElementById('relance-body').value = body;
-
-      const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      document.getElementById('relance-mailto-link').href = mailto;
-
-      document.getElementById('modal-relance').classList.remove('hidden');
+      const csvString = "\uFEFF" + csvRows.join("\n");
+      const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
+      downloadFile(dataStr, `reecritures_contenus_${getTodayDateStr()}.csv`);
     }
 
-    function closeRelanceModal() {
-      document.getElementById('modal-relance').classList.add('hidden');
+    function exportConfigJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
+      downloadFile(dataStr, `config_backoffice_listes_${getTodayDateStr()}.json`);
     }
 
-    function copyRelanceText() {
-      const bodyText = document.getElementById('relance-body').value;
-      navigator.clipboard.writeText(bodyText);
-      alert('Texte de relance copié dans le presse-papier !');
-    }
+    function importConfigJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
 
-    // Import / Export JSON
-    function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fiches, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `calvados_fiches_aides_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importData(event) {
-      const fileReader = new FileReader();
-      fileReader.onload = function(e) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
         try {
-          const importedData = JSON.parse(e.target.result);
-          if (Array.isArray(importedData)) {
-            fiches = importedData;
-            saveToLocalStorage();
-            initDropdowns();
-            applyFilters();
-            alert('Données importées avec succès !');
+          const parsed = JSON.parse(evt.target.result);
+          if (typeof parsed === 'object') {
+            config = { ...defaultConfig, ...parsed };
+            saveConfig();
+            renderApp();
+            alert("La configuration du Back-Office a été importée avec succès !");
           }
         } catch(err) {
-          alert('Fichier JSON invalide.');
+          alert("Erreur lors de la lecture du fichier de configuration JSON.");
         }
       };
-      fileReader.readAsText(event.target.files[0]);
+      reader.readAsText(file);
+    }
+
+    function downloadFile(dataUri, filename) {
+      const link = document.createElement('a');
+      link.setAttribute('href', dataUri);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function getTodayDateStr() {
+      return new Date().toISOString().split('T')[0];
     }
   </script>
+</body>
+</html>
