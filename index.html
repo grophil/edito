@@ -1,1281 +1,775 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-50">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestionnaire & Back-Office de Réécriture Web</title>
-  
-  <!-- Tailwind CSS & Lucide Icons -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#f0f7ff',
-              100: '#e0effe',
-              500: '#0284c7',
-              600: '#0369a1',
-              700: '#075985',
-            }
-          }
-        }
-      }
+  <title>Gestionnaire de Réécriture de Contenus Web</title>
+  <style>
+    :root {
+      --primary: #0052cc;
+      --primary-hover: #0065ff;
+      --bg: #f4f5f7;
+      --card-bg: #ffffff;
+      --border: #dcdfe4;
+      --text: #172b4d;
+      --text-muted: #5e6c84;
+      --danger: #de350b;
+      --warning: #ffab00;
+      --success: #36b37e;
     }
-  </script>
+
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: var(--text); line-height: 1.4; }
+
+    /* Header & Navigation */
+    header { background: #0747a6; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    header h1 { margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+    nav { display: flex; gap: 10px; }
+    .nav-btn { background: rgba(255,255,255,0.15); color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .nav-btn:hover { background: rgba(255,255,255,0.25); }
+    .nav-btn.active { background: white; color: #0747a6; }
+
+    /* Main Container */
+    main { padding: 25px 30px; max-width: 1600px; margin: 0 auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Cards & Layout */
+    .card { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .card h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; color: #091e42; }
+    
+    /* Stats Bar */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .kpi-card { background: white; border-radius: 6px; padding: 12px 16px; border: 1px solid var(--border); border-left: 5px solid var(--primary); }
+    .kpi-val { font-size: 1.6rem; font-weight: 700; }
+    .kpi-lbl { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+
+    /* Controls Bar */
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    
+    /* Forms & Inputs */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 0.8rem; font-weight: 600; color: #42526e; }
+    input, select, textarea { padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; font-family: inherit; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0,82,204,0.2); }
+    
+    /* Buttons */
+    .btn { padding: 8px 14px; border-radius: 4px; border: none; font-weight: 600; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #ebecf0; color: #42526e; }
+    .btn-secondary:hover { background: #dfe1e6; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-warning { background: var(--warning); color: #172b4d; }
+    .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
+
+    /* Table */
+    .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    th { background: #fafbfc; color: #5e6c84; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
+    tr:hover { background-color: #f4f5f7; }
+
+    /* Custom Badges & Selects */
+    .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-block; text-align: center; }
+    .status-select { font-weight: 700; border: none; padding: 4px 8px; border-radius: 12px; cursor: pointer; font-size: 0.8rem; }
+    .badge-prio-Haute { background: #ffebe6; color: #de350b; }
+    .badge-prio-Moyenne { background: #fffae6; color: #ff8b00; }
+    .badge-prio-Basse { background: #e3fcef; color: #006644; }
+
+    /* Due Date Alerts */
+    .date-ok { color: var(--text); }
+    .date-alert-j2 { background: #ffab00; color: #172b4d; padding: 2px 6px; border-radius: 4px; font-weight: 700; animation: pulse 2s infinite; }
+    .date-alert-overdue { background: #de350b; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+    /* JSON & Backoffice Styles */
+    .drop-zone { border: 2px dashed var(--border); border-radius: 6px; padding: 20px; text-align: center; background: #fafbfc; cursor: pointer; }
+    .drop-zone:hover { border-color: var(--primary); background: #f4f5f7; }
+    .bo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    .bo-item-list { list-style: none; padding: 0; margin: 10px 0 0 0; max-height: 250px; overflow-y: auto; }
+    .bo-item-list li { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: #fafbfc; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 6px; gap: 8px; }
+    .bo-item-list li input[type="text"] { flex: 1; }
+  </style>
 </head>
-<body class="h-full font-sans text-slate-800 antialiased flex flex-col">
+<body>
 
-  <!-- En-tête Principale avec Navigation Onglets -->
-  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        
-        <!-- Logo & Titre -->
-        <div class="flex items-center space-x-3">
-          <div class="p-2 bg-brand-500 rounded-lg text-white shadow">
-            <i data-lucide="file-text" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <h1 class="text-lg font-bold tracking-tight">Réécriture Web</h1>
-            <p class="text-xs text-slate-400">Suivi éditorial & Administration</p>
-          </div>
-        </div>
-        
-        <!-- Onglets Navigation Principale -->
-        <nav class="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700/80">
-          <button id="navTabDashboard" onclick="switchMainTab('dashboard')" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all bg-brand-600 text-white shadow-sm">
-            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-            <span>Tableau de Suivi</span>
-          </button>
-          <button id="navTabBackoffice" onclick="switchMainTab('backoffice')" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-700/50">
-            <i data-lucide="settings" class="w-4 h-4"></i>
-            <span>Back-Office (Listes)</span>
-          </button>
-        </nav>
-
-        <!-- Actions rapides Globales -->
-        <div class="flex items-center space-x-2">
-          <button id="btnOpenImport" class="flex items-center space-x-2 px-3 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium rounded-lg transition-colors shadow-sm">
-            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-            <span class="hidden sm:inline">Import JSON</span>
-          </button>
-          
-          <button id="btnExportCSV" class="flex items-center space-x-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-colors border border-slate-700">
-            <i data-lucide="download" class="w-3.5 h-3.5"></i>
-            <span class="hidden sm:inline">CSV</span>
-          </button>
-
-          <button id="btnExportJSON" class="flex items-center space-x-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-colors border border-slate-700">
-            <i data-lucide="file-json" class="w-3.5 h-3.5"></i>
-            <span class="hidden sm:inline">JSON</span>
-          </button>
-
-          <button id="btnOpenCreate" class="flex items-center space-x-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm ml-1">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>Nouveau</span>
-          </button>
-        </div>
-
-      </div>
-    </div>
+  <header>
+    <h1>📝 Suivi & Gestion des Réécritures Web</h1>
+    <nav>
+      <button class="nav-btn active" onclick="switchTab('dashboard')">📊 Tableau de Bord</button>
+      <button class="nav-btn" onclick="switchTab('import')">📥 Import JSON</button>
+      <button class="nav-btn" onclick="switchTab('backoffice')">⚙️ Back-Office</button>
+    </nav>
   </header>
 
-  <!-- ========================================================= -->
-  <!-- VUE 1 : TABLEAU DE SUIVI (DASHBOARD)                     -->
-  <!-- ========================================================= -->
-  <main id="viewDashboard" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <main>
+    <!-- TAB 1: DASHBOARD -->
+    <div id="tab-dashboard" class="tab-content active">
+      <!-- KPIs -->
+      <div class="kpi-grid" id="kpiContainer"></div>
 
-    <!-- KPI / Métriques -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="statsContainer">
-      <!-- Rempli en JS -->
-    </div>
-
-    <!-- Barre de Filtres et de Recherche -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4">
-      <div class="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
-        <!-- Recherche globale -->
-        <div class="relative flex-1">
-          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input type="text" id="searchInput" placeholder="Rechercher par titre, ID, rédacteur, thématique..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
-        </div>
-
-        <!-- Filtres -->
-        <div class="flex flex-wrap gap-2 items-center">
-          <select id="filterStatut" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
-            <option value="">Tous les statuts</option>
-          </select>
-
-          <select id="filterTypologie" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
-            <option value="">Toutes les typologies</option>
-          </select>
-
-          <select id="filterPriorite" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+      <!-- Controls & Filters -->
+      <div class="controls">
+        <div class="filters">
+          <input type="text" id="filterSearch" placeholder="🔍 Rechercher (titre, ID, contact)..." oninput="renderApp()" style="min-width: 220px;">
+          <select id="filterStatut" onchange="renderApp()"><option value="">Tous les statuts</option></select>
+          <select id="filterTypologie" onchange="renderApp()"><option value="">Toutes les typologies</option></select>
+          <select id="filterPrio" onchange="renderApp()">
             <option value="">Toutes les priorités</option>
-            <option value="Basse">Basse</option>
-            <option value="Moyenne">Moyenne</option>
             <option value="Haute">Haute</option>
-            <option value="Urgente">Urgente</option>
+            <option value="Moyenne">Moyenne</option>
+            <option value="Basse">Basse</option>
           </select>
-
-          <select id="filterDga" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
-            <option value="">Toutes les DGA</option>
-          </select>
-
-          <button id="btnClearFilters" class="px-3 py-2 text-slate-600 hover:text-slate-900 text-xs font-medium hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1">
-            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-            <span>Réinitialiser</span>
-          </button>
+          <button class="btn btn-warning" id="btnUrgences" onclick="toggleUrgences()">⚠️ Urgences (J-2 / Retards)</button>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="openAddModal()">➕ Nouveau contenu</button>
+          <button class="btn btn-secondary" onclick="exportCSV()">📊 Export CSV</button>
+          <button class="btn btn-secondary" onclick="exportJSON()">💾 Export JSON</button>
         </div>
       </div>
-    </div>
 
-    <!-- Tableau de Suivi -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-xs">
+      <!-- Main Data Table -->
+      <div class="table-responsive">
+        <table>
           <thead>
-            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
-              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('id')">
-                <div class="flex items-center gap-1">ID <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
-              </th>
-              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('titre')">
-                <div class="flex items-center gap-1">Titre <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
-              </th>
-              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('typologie')">
-                <div class="flex items-center gap-1">Typologie <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
-              </th>
-              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('thematique')">
-                <div class="flex items-center gap-1">Thématique / DGA <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
-              </th>
-              <th class="p-4">Équipe (Rédac / Rel.1 / Rel.2)</th>
-              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('date_butoire')">
-                <div class="flex items-center gap-1">Planning <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
-              </th>
-              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('priorite')">
-                <div class="flex items-center gap-1">Priorité <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
-              </th>
-              <th class="p-4 cursor-pointer hover:bg-slate-100 transition-colors" onclick="sortTable('statut')">
-                <div class="flex items-center gap-1">Statut (Interactif) <i data-lucide="arrow-up-down" class="w-3 h-3"></i></div>
-              </th>
-              <th class="p-4 text-right">Actions</th>
+            <tr>
+              <th>ID</th>
+              <th>Titre</th>
+              <th>Typologie</th>
+              <th>Thématique</th>
+              <th>DGA / Service</th>
+              <th>Attribué à</th>
+              <th>Relecteurs</th>
+              <th>Date envoi</th>
+              <th>Date butoire</th>
+              <th>Priorité</th>
+              <th>Statut</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="tableBody" class="divide-y divide-slate-200">
-            <!-- Rempli dynamiquement -->
-          </tbody>
+          <tbody id="tableBody"></tbody>
         </table>
       </div>
-      
-      <!-- Pied de tableau -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-        <span id="tableInfo">Affichage de 0 contenu(s)</span>
-        <div class="flex items-center gap-2">
-          <button id="btnClearAll" class="text-rose-600 hover:text-rose-800 font-medium hover:underline flex items-center gap-1">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Vider toute la base de contenus
-          </button>
+    </div>
+
+    <!-- TAB 2: IMPORT JSON -->
+    <div id="tab-import" class="tab-content">
+      <div class="card">
+        <h2>📥 Importation massive de contenus (JSON)</h2>
+        <p>Glissez-déposez un fichier `.json` ou collez directement la structure JSON ci-dessous.</p>
+        
+        <div class="drop-zone" onclick="document.getElementById('fileInput').click()" id="dropZone">
+          📄 Cliquez ou glissez votre fichier JSON ici
+          <input type="file" id="fileInput" accept=".json" style="display:none;" onchange="handleFileImport(event)">
+        </div>
+
+        <div style="margin-top: 15px;">
+          <label for="jsonPaste">Ou collez le JSON brut :</label>
+          <textarea id="jsonPaste" rows="8" placeholder='[{"titre": "Exemple", "statut": "À traiter", ...}]'></textarea>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; gap: 10px;">
+          <button class="btn btn-primary" onclick="processTextImport(false)">➕ Ajouter aux données existantes</button>
+          <button class="btn btn-danger" onclick="processTextImport(true)">⚠️ Remplacer toute la base</button>
+          <button class="btn btn-secondary" onclick="copySampleJSON()">📋 Copier un modèle JSON</button>
         </div>
       </div>
     </div>
 
-  </main>
-
-  <!-- ========================================================= -->
-  <!-- VUE 2 : BACK-OFFICE ADM. DES LISTES DÉROULANTES           -->
-  <!-- ========================================================= -->
-  <main id="viewBackoffice" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 hidden">
-    
-    <!-- En-tête Back-Office -->
-    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
-      <div>
-        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <i data-lucide="sliders" class="w-5 h-5 text-brand-600"></i> Administration des Listes Déroulantes
-        </h2>
-        <p class="text-xs text-slate-500 mt-1">Configurez dynamiquement les choix disponibles pour chaque champ du formulaire de réécriture.</p>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-2">
-        <button id="btnExportConfig" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-300">
-          <i data-lucide="download-cloud" class="w-4 h-4"></i> Exporter la config
-        </button>
-        <button id="btnImportConfig" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-300">
-          <i data-lucide="upload-cloud" class="w-4 h-4"></i> Importer une config
-        </button>
-        <button id="btnResetConfig" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-rose-200">
-          <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Valeurs par défaut
-        </button>
-        <input type="file" id="inputFileConfig" accept=".json" class="hidden">
-      </div>
-    </div>
-
-    <!-- Grille des 7 Listes Déroulantes à Administrer -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="backofficeGrid">
-      <!-- Rempli dynamiquement en JS -->
-    </div>
-
-  </main>
-
-  <!-- MODAL : Import JSON en masse de Contenus -->
-  <div id="modalImport" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-        <div class="flex items-center space-x-3">
-          <div class="p-2 bg-brand-100 text-brand-700 rounded-lg">
-            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-slate-900">Importation JSON en Masse</h3>
-            <p class="text-xs text-slate-500">Chargez ou collez vos contenus au format JSON</p>
-          </div>
-        </div>
-        <button class="btnCloseModal text-slate-400 hover:text-slate-600">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="p-6 space-y-5 overflow-y-auto flex-1">
-        <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-brand-500 hover:bg-brand-50/50 transition-all cursor-pointer flex flex-col items-center justify-center group">
-          <i data-lucide="file-up" class="w-8 h-8 text-slate-400 group-hover:text-brand-500 mb-2 transition-colors"></i>
-          <p class="text-xs font-medium text-slate-700">Glissez-déposez votre fichier <strong>.json</strong> ici</p>
-          <p class="text-[11px] text-slate-400 mt-0.5">ou cliquez pour parcourir</p>
-          <input type="file" id="fileInput" accept=".json" class="hidden">
-        </div>
-
-        <div class="relative flex py-1 items-center">
-          <div class="flex-grow border-t border-slate-200"></div>
-          <span class="flex-shrink mx-4 text-slate-400 text-xs uppercase font-semibold">Ou collez du code JSON</span>
-          <div class="flex-grow border-t border-slate-200"></div>
-        </div>
-
+    <!-- TAB 3: BACK-OFFICE -->
+    <div id="tab-backoffice" class="tab-content">
+      <div class="controls">
+        <h2>⚙️ Configuration des listes déroulantes & couleurs</h2>
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Code JSON brut</label>
-          <textarea id="jsonTextArea" rows="4" placeholder='[ { "id": "PAGE-1", "titre": "Exemple...", "statut": "À traiter" } ]' class="w-full p-3 font-mono text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
-        </div>
-
-        <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 flex items-center justify-between">
-          <span class="text-xs font-medium text-slate-700">Comportement de l'import :</span>
-          <div class="flex gap-4">
-            <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-              <input type="radio" name="importMode" value="append" checked class="text-brand-600 focus:ring-brand-500">
-              Ajouter aux données actuelles
-            </label>
-            <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-              <input type="radio" name="importMode" value="replace" class="text-brand-600 focus:ring-brand-500">
-              Remplacer toute la base
-            </label>
-          </div>
-        </div>
-
-        <div class="border border-slate-200 rounded-lg p-3.5 bg-slate-900 text-slate-100">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-slate-300 flex items-center gap-1">
-              <i data-lucide="code" class="w-3.5 h-3.5"></i> Modèle JSON attendu (15 champs)
-            </span>
-            <button id="btnCopySample" class="text-xs text-brand-400 hover:text-brand-300 font-medium flex items-center gap-1">
-              <i data-lucide="copy" class="w-3 h-3"></i> Copier l'exemple
-            </button>
-          </div>
-          <pre class="text-[11px] font-mono leading-tight text-slate-300 overflow-x-auto bg-slate-950 p-2.5 rounded border border-slate-800" id="jsonSampleCode"></pre>
+          <button class="btn btn-secondary" onclick="exportBOConfig()">💾 Exporter Config</button>
+          <button class="btn btn-danger" onclick="resetBOConfig()">🔄 Réinitialiser par défaut</button>
         </div>
       </div>
-
-      <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
-        <div id="importFeedback" class="text-xs font-medium"></div>
-        <div class="flex gap-2">
-          <button class="btnCloseModal px-4 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100">Annuler</button>
-          <button id="btnProcessImport" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-medium shadow-sm transition-colors flex items-center gap-1.5">
-            <i data-lucide="check" class="w-4 h-4"></i> Valider & Importer
-          </button>
-        </div>
-      </div>
+      <div class="bo-grid" id="boContainer"></div>
     </div>
-  </div>
+  </main>
 
-  <!-- MODAL : Formulaire d'Ajout / Édition d'un Contenu -->
-  <div id="modalForm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-      
-      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-        <div class="flex items-center space-x-3">
-          <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
-            <i data-lucide="edit-3" class="w-5 h-5"></i>
+  <!-- MODAL: ADD / EDIT CONTENT -->
+  <div id="contentModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <div class="card" style="width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto;">
+      <h2 id="modalTitle">Ajouter un contenu</h2>
+      <form id="itemForm" onsubmit="saveItem(event)">
+        <input type="hidden" id="editId">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Titre de la page / contenu *</label>
+            <input type="text" id="field_titre" required>
           </div>
-          <div>
-            <h3 class="text-base font-bold text-slate-900" id="modalFormTitle">Nouveau contenu</h3>
-            <p class="text-xs text-slate-500">Formulaire avec listes déroulantes synchronisées</p>
+          <div class="form-group">
+            <label>Typologie</label>
+            <select id="field_typologie"></select>
           </div>
-        </div>
-        <button class="btnCloseModal text-slate-400 hover:text-slate-600">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <form id="itemForm" class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
-        <input type="hidden" id="field_index">
-
-        <!-- Ligne 1 : ID & Titre -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">ID Unique</label>
-            <input type="text" id="field_id" placeholder="ex: PAGE-101" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          <div class="form-group">
+            <label>Thématique</label>
+            <input type="text" id="field_thematique">
           </div>
-          <div class="md:col-span-3">
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Titre de la page / URL *</label>
-            <input type="text" id="field_titre" required placeholder="ex: Inscription au service de cantine scolaire" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          <div class="form-group">
+            <label>DGA</label>
+            <select id="field_dga"></select>
           </div>
-        </div>
-
-        <!-- Ligne 2 : Thématique, Typologie, Priorité, Statut -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Thématique</label>
-            <input type="text" id="field_thematique" placeholder="ex: Éducation" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          <div class="form-group">
+            <label>Service</label>
+            <select id="field_service"></select>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Typologie *</label>
-            <select id="field_typologie" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          <div class="form-group">
+            <label>Attribué à (Rédacteur)</label>
+            <select id="field_attribue_a"></select>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Priorité</label>
-            <select id="field_priorite" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          <div class="form-group">
+            <label>Relecture 1</label>
+            <select id="field_relecture_1"></select>
+          </div>
+          <div class="form-group">
+            <label>Relecture 2</label>
+            <select id="field_relecture_2"></select>
+          </div>
+          <div class="form-group">
+            <label>Priorité</label>
+            <select id="field_priorite">
               <option value="Basse">Basse</option>
               <option value="Moyenne" selected>Moyenne</option>
               <option value="Haute">Haute</option>
-              <option value="Urgente">Urgente</option>
             </select>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Statut *</label>
-            <select id="field_statut" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
+          <div class="form-group">
+            <label>Statut</label>
+            <select id="field_statut"></select>
+          </div>
+          <div class="form-group">
+            <label>Date d'envoi</label>
+            <input type="date" id="field_date_envoi">
+          </div>
+          <div class="form-group">
+            <label>Date butoire</label>
+            <input type="date" id="field_date_butoire">
+          </div>
+          <div class="form-group">
+            <label>Contact référent</label>
+            <input type="text" id="field_contact">
+          </div>
+          <div class="form-group full">
+            <label>Commentaires / Consignes</label>
+            <textarea id="field_commentaires" rows="3"></textarea>
           </div>
         </div>
-
-        <!-- Ligne 3 : Organigramme (DGA, Service, Contact) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">DGA *</label>
-            <select id="field_dga" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Service *</label>
-            <select id="field_service" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Référent</label>
-            <input type="text" id="field_contact" placeholder="ex: contact.enfance@ville.fr" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
-          </div>
-        </div>
-
-        <!-- Ligne 4 : Acteurs -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Attribué à (Rédacteur)</label>
-            <select id="field_attribue_a" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Relecteur 1</label>
-            <select id="field_relecture_1" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Relecteur 2 (Valideur)</label>
-            <select id="field_relecture_2" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
-          </div>
-        </div>
-
-        <!-- Ligne 5 : Dates -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Date d'envoi</label>
-            <input type="date" id="field_date_envoi" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Date limite / Butoire</label>
-            <input type="date" id="field_date_butoire" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
-          </div>
-        </div>
-
-        <!-- Ligne 6 : Commentaires -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Commentaires & Consignes</label>
-          <textarea id="field_commentaires" rows="3" placeholder="Notes particulières, contraintes RGAA, simplification du vocabulaire..." class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
-        </div>
-
-        <div class="pt-4 border-t border-slate-200 flex justify-end gap-2">
-          <button type="button" class="btnCloseModal px-4 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100">Annuler</button>
-          <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5">
-            <i data-lucide="save" class="w-4 h-4"></i> Enregistrer le contenu
-          </button>
+        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
         </div>
       </form>
-
     </div>
   </div>
 
-  <!-- JAVASCRIPT & LOGIQUE COMPLÈTE DE L'APPLICATION -->
   <script>
-    // Configuration par défaut des listes déroulantes
+    // DEFAULT CONFIG & STATE
     const defaultConfig = {
-      statut: ["À traiter", "En réécriture", "Relecture 1", "Relecture 2", "Validé", "Publié"],
-      dga: ["DGA Administration Générale", "DGA Services à la Population", "DGA Sports et Culture", "DGA Solidarités et Cohésion", "DGA Aménagement & Urbanisme"],
-      service: ["Service État Civil", "Direction des Sports", "CCAS / Action Sociale", "Service Communication", "Direction de l'Éducation", "Urbanisme"],
-      typologie: ["Démarche / Procédure", "Page d'information", "Fiche service", "Actualité", "Dossier Thématique"],
-      attribue_a: ["Sophie Martin", "Lucas Bernard", "Julie Roy", "Jean Dupont", "Claire Moreau"],
-      relecture_1: ["Pierre Durand", "Sophie Martin", "Marc Antoine", "Camille Petit"],
-      relecture_2: ["Directeur État Civil", "Service Communication", "DGA Social", "Responsable Éditorial"]
+      statut: [
+        { name: "À traiter", color: "#e2e8f0" },
+        { name: "En réécriture", color: "#fef08a" },
+        { name: "Relecture 1", color: "#fed7aa" },
+        { name: "Relecture 2", color: "#fbcfe8" },
+        { name: "Validé", color: "#bbf7d0" },
+        { name: "Publié", color: "#86efac" }
+      ],
+      dga: ["DGA RHT", "DGA Aménagement", "DGA Solidarités", "DGA Éducation & Culture"],
+      service: ["Direction des Services Numériques", "Direction de la Communication", "DRH", "Service Transport"],
+      typologie: ["Page d'information", "Démarche / Procédure", "Actualité", "Fiche service"],
+      attribue_a: ["Non attribué", "Jean Dupont", "Marie Curie", "Pierre Martin"],
+      relecture_1: ["Non assigné", "Sophie Germain", "Lucie Aubrac"],
+      relecture_2: ["Non assigné", "Directeur de projet", "Chef de service"]
     };
 
-    const backofficeCardsMeta = [
-      { key: 'statut', title: 'Statuts de Réécriture', icon: 'list-checks', subtitle: 'Flux de statut' },
-      { key: 'dga', title: 'Directions Générales (DGA)', icon: 'building-2', subtitle: 'Pôles DGA' },
-      { key: 'service', title: 'Services / Pôles', icon: 'briefcase', subtitle: 'Services rattachés' },
-      { key: 'typologie', title: 'Typologies de Contenu', icon: 'tags', subtitle: 'Pages info, démarches...' },
-      { key: 'attribue_a', title: 'Rédacteurs (Attribué à)', icon: 'user-check', subtitle: 'Rédacteurs web' },
-      { key: 'relecture_1', title: 'Relecteurs N°1', icon: 'user-check', subtitle: 'Première relecture' },
-      { key: 'relecture_2', title: 'Relecteurs N°2 / Valideurs', icon: 'shield-check', subtitle: 'Validation finale' }
-    ];
+    let boConfig = JSON.parse(localStorage.getItem('rewrite_bo_config')) || defaultConfig;
+    let items = JSON.parse(localStorage.getItem('rewrite_items_data')) || [];
+    let showUrgencesOnly = false;
 
-    const sampleData = [
-      {
-        id: "PAGE-001",
-        titre: "Demande de carte nationale d'identité",
-        thematique: "Citoyenneté",
-        priorite: "Haute",
-        statut: "En réécriture",
-        attribue_a: "Sophie Martin",
-        relecture_1: "Pierre Durand",
-        relecture_2: "Directeur État Civil",
-        date_envoi: "2026-10-15",
-        date_butoire: "2026-11-20",
-        dga: "DGA Administration Générale",
-        service: "Service État Civil",
-        contact: "etat.civil@commune.fr",
-        commentaires: "Réécrire en langage FALC (Facile à Lire et à Comprendre).",
-        typologie: "Démarche / Procédure"
-      },
-      {
-        id: "PAGE-002",
-        titre: "Horaires et tarifs de la piscine municipale",
-        thematique: "Sports & Loisirs",
-        priorite: "Moyenne",
-        statut: "À traiter",
-        attribue_a: "Lucas Bernard",
-        relecture_1: "Sophie Martin",
-        relecture_2: "Service Communication",
-        date_envoi: "2026-11-01",
-        date_butoire: "2026-12-05",
-        dga: "DGA Sports et Culture",
-        service: "Direction des Sports",
-        contact: "piscine@commune.fr",
-        commentaires: "Mettre sous forme de tableau responsive les nouveaux tarifs.",
-        typologie: "Page d'information"
-      },
-      {
-        id: "PAGE-003",
-        titre: "Aide au logement pour les jeunes travailleurs",
-        thematique: "Social & Logement",
-        priorite: "Urgente",
-        statut: "Relecture 1",
-        attribue_a: "Julie Roy",
-        relecture_1: "Pierre Durand",
-        relecture_2: "DGA Social",
-        date_envoi: "2026-09-20",
-        date_butoire: "2026-11-10",
-        dga: "DGA Solidarités et Cohésion",
-        service: "CCAS / Action Sociale",
-        contact: "ccas@commune.fr",
-        commentaires: "Clarifier les conditions de ressources et pièces justificatives.",
-        typologie: "Fiche service"
-      }
-    ];
-
-    let items = [];
-    let config = {};
-    let sortColumn = 'id';
-    let sortDirection = 'asc';
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadConfig();
-      loadData();
-      setupEventListeners();
-      setupSampleJsonDisplay();
+    // INIT
+    function init() {
+      // Ensure color structure
+      boConfig.statut = boConfig.statut.map(s => typeof s === 'string' ? { name: s, color: '#e2e8f0' } : s);
+      saveBOConfig();
       renderApp();
-    });
-
-    function loadConfig() {
-      const storedConfig = localStorage.getItem('rewrite_config_v2');
-      if (storedConfig) {
-        try {
-          config = JSON.parse(storedConfig);
-          Object.keys(defaultConfig).forEach(k => {
-            if (!Array.isArray(config[k])) config[k] = [...defaultConfig[k]];
-          });
-        } catch(e) {
-          config = JSON.parse(JSON.stringify(defaultConfig));
-        }
-      } else {
-        config = JSON.parse(JSON.stringify(defaultConfig));
-        saveConfig();
-      }
+      setupDragAndDrop();
     }
 
-    function saveConfig() {
-      localStorage.setItem('rewrite_config_v2', JSON.stringify(config));
+    function saveBOConfig() {
+      localStorage.setItem('rewrite_bo_config', JSON.stringify(boConfig));
     }
 
-    function loadData() {
-      const storedData = localStorage.getItem('rewrite_items_v2');
-      if (storedData) {
-        try {
-          items = JSON.parse(storedData);
-        } catch(e) {
-          items = [...sampleData];
-        }
-      } else {
-        items = [...sampleData];
-        saveData();
-      }
+    function saveItemsData() {
+      localStorage.setItem('rewrite_items_data', JSON.stringify(items));
     }
 
-    function saveData() {
-      localStorage.setItem('rewrite_items_v2', JSON.stringify(items));
+    // TAB NAVIGATION
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.target.classList.add('active');
+
+      if (tabId === 'backoffice') renderBackOffice();
+      if (tabId === 'dashboard') renderApp();
     }
 
+    // RENDER DASHBOARD & TABLE
     function renderApp() {
-      renderBackoffice();
-      populateSelectsFromConfig();
-      renderStats();
-      renderTable();
-      if (window.lucide) lucide.createIcons();
-    }
+      populateDropdowns();
+      renderKPIs();
 
-    function renderBackoffice() {
-      const grid = document.getElementById('backofficeGrid');
-      if (!grid) return;
+      const search = document.getElementById('filterSearch').value.toLowerCase();
+      const fStatut = document.getElementById('filterStatut').value;
+      const fTypo = document.getElementById('filterTypologie').value;
+      const fPrio = document.getElementById('filterPrio').value;
 
-      grid.innerHTML = backofficeCardsMeta.map(card => {
-        const key = card.key;
-        const options = config[key] || [];
-        
-        const optionsHtml = options.length === 0
-          ? `<p class="text-xs text-slate-400 italic py-2 text-center">Aucune option configurée.</p>`
-          : options.map((opt, idx) => `
-              <div class="flex items-center justify-between p-2 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 text-xs transition-colors">
-                <span class="font-medium text-slate-800 truncate mr-2">${escapeHtml(opt)}</span>
-                <div class="flex items-center space-x-1">
-                  <button onclick="moveConfigOption('${key}', ${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-30 cursor-not-allowed text-slate-400"' : 'class="p-1 hover:text-brand-600 text-slate-500"'} title="Monter">
-                    <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button onclick="moveConfigOption('${key}', ${idx}, 1)" ${idx === options.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed text-slate-400"' : 'class="p-1 hover:text-brand-600 text-slate-500"'} title="Descendre">
-                    <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button onclick="editConfigOption('${key}', ${idx})" class="p-1 hover:text-brand-600 text-slate-500" title="Modifier">
-                    <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button onclick="deleteConfigOption('${key}', ${idx})" class="p-1 hover:text-rose-600 text-slate-500" title="Supprimer">
-                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                  </button>
-                </div>
-              </div>
-            `).join('');
-
-        return `
-          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <div class="flex items-center space-x-2.5">
-                <div class="p-2 bg-brand-50 text-brand-600 rounded-lg">
-                  <i data-lucide="${card.icon}" class="w-4 h-4"></i>
-                </div>
-                <div>
-                  <h3 class="text-xs font-bold text-slate-900">${card.title}</h3>
-                  <p class="text-[10px] text-slate-500">${card.subtitle}</p>
-                </div>
-              </div>
-              <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full">${options.length}</span>
-            </div>
-
-            <div class="p-3 border-b border-slate-100 bg-white">
-              <form onsubmit="addConfigOption(event, '${key}')" class="flex gap-2">
-                <input type="text" id="input_add_${key}" required placeholder="Ajouter une option..." class="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                <button type="submit" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg text-xs transition-colors shadow-sm flex items-center gap-1">
-                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                </button>
-              </form>
-            </div>
-
-            <div class="p-3 flex-1 overflow-y-auto max-h-60 space-y-1.5">
-              ${optionsHtml}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function addConfigOption(e, key) {
-      e.preventDefault();
-      const input = document.getElementById(`input_add_${key}`);
-      if (!input) return;
-      const val = input.value.trim();
-      if (!val) return;
-
-      if (!config[key]) config[key] = [];
-      if (config[key].includes(val)) {
-        alert("Cette option existe déjà dans la liste.");
-        return;
-      }
-
-      config[key].push(val);
-      saveConfig();
-      input.value = '';
-      renderApp();
-    }
-
-    function editConfigOption(key, idx) {
-      const oldVal = config[key][idx];
-      const newVal = prompt("Modifier le libellé :", oldVal);
-      if (newVal !== null && newVal.trim() !== '' && newVal.trim() !== oldVal) {
-        config[key][idx] = newVal.trim();
-        saveConfig();
-        renderApp();
-      }
-    }
-
-    function deleteConfigOption(key, idx) {
-      if (confirm(`Voulez-vous supprimer "${config[key][idx]}" ?`)) {
-        config[key].splice(idx, 1);
-        saveConfig();
-        renderApp();
-      }
-    }
-
-    function moveConfigOption(key, idx, dir) {
-      const newIndex = idx + dir;
-      if (newIndex < 0 || newIndex >= config[key].length) return;
-      const item = config[key].splice(idx, 1)[0];
-      config[key].splice(newIndex, 0, item);
-      saveConfig();
-      renderApp();
-    }
-
-    function populateSelectsFromConfig() {
-      fillSelectOptions('field_statut', config.statut, true);
-      fillSelectOptions('field_dga', config.dga, true);
-      fillSelectOptions('field_service', config.service, true);
-      fillSelectOptions('field_typologie', config.typologie, true);
-      fillSelectOptions('field_attribue_a', config.attribue_a, true);
-      fillSelectOptions('field_relecture_1', config.relecture_1, true);
-      fillSelectOptions('field_relecture_2', config.relecture_2, true);
-
-      fillSelectOptions('filterStatut', config.statut, false, "Tous les statuts");
-      fillSelectOptions('filterTypologie', config.typologie, false, "Toutes les typologies");
-      fillSelectOptions('filterDga', config.dga, false, "Toutes les DGA");
-    }
-
-    function fillSelectOptions(selectId, optionsArray, isField = false, placeholderText = "-- Sélectionner --") {
-      const select = document.getElementById(selectId);
-      if (!select) return;
-
-      const currVal = select.value;
-      select.innerHTML = '';
-
-      if (!isField) {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = placeholderText;
-        select.appendChild(opt);
-      } else {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = '-- Non spécifié --';
-        select.appendChild(opt);
-      }
-
-      (optionsArray || []).forEach(val => {
-        const opt = document.createElement('option');
-        opt.value = val;
-        opt.textContent = val;
-        if (val === currVal) opt.selected = true;
-        select.appendChild(opt);
+      const filtered = items.filter(item => {
+        const mSearch = !search || item.titre.toLowerCase().includes(search) || item.id.toLowerCase().includes(search) || (item.contact && item.contact.toLowerCase().includes(search));
+        const mStatut = !fStatut || item.statut === fStatut;
+        const mTypo = !fTypo || item.typologie === fTypo;
+        const mPrio = !fPrio || item.priorite === fPrio;
+        const mUrgence = !showUrgencesOnly || isUrgent(item.date_butoire, item.statut);
+        return mSearch && mStatut && mTypo && mPrio && mUrgence;
       });
-    }
 
-    function switchMainTab(tab) {
-      const dashView = document.getElementById('viewDashboard');
-      const backView = document.getElementById('viewBackoffice');
-      const btnDash = document.getElementById('navTabDashboard');
-      const btnBack = document.getElementById('navTabBackoffice');
-
-      if (tab === 'dashboard') {
-        dashView.classList.remove('hidden');
-        backView.classList.add('hidden');
-        btnDash.className = "flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all bg-brand-600 text-white shadow-sm";
-        btnBack.className = "flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-700/50";
-      } else {
-        dashView.classList.add('hidden');
-        backView.classList.remove('hidden');
-        btnBack.className = "flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all bg-brand-600 text-white shadow-sm";
-        btnDash.className = "flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-700/50";
-        renderBackoffice();
-      }
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function getFilteredAndSortedItems() {
-      const search = (document.getElementById('searchInput').value || '').toLowerCase();
-      const filterStatut = document.getElementById('filterStatut').value;
-      const filterTypologie = document.getElementById('filterTypologie').value;
-      const filterPriorite = document.getElementById('filterPriorite').value;
-      const filterDga = document.getElementById('filterDga').value;
-
-      return items.filter(item => {
-        const matchesSearch = !search || 
-          (item.titre && item.titre.toLowerCase().includes(search)) ||
-          (item.id && item.id.toLowerCase().includes(search)) ||
-          (item.attribue_a && item.attribue_a.toLowerCase().includes(search)) ||
-          (item.thematique && item.thematique.toLowerCase().includes(search)) ||
-          (item.contact && item.contact.toLowerCase().includes(search)) ||
-          (item.service && item.service.toLowerCase().includes(search));
-
-        const matchesStatut = !filterStatut || item.statut === filterStatut;
-        const matchesTypologie = !filterTypologie || item.typologie === filterTypologie;
-        const matchesPriorite = !filterPriorite || item.priorite === filterPriorite;
-        const matchesDga = !filterDga || item.dga === filterDga;
-
-        return matchesSearch && matchesStatut && matchesTypologie && matchesPriorite && matchesDga;
-      }).sort((a, b) => {
-        let valA = a[sortColumn] || '';
-        let valB = b[sortColumn] || '';
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-
-        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    function updateItemStatut(index, newStatut) {
-      if (items[index]) {
-        items[index].statut = newStatut;
-        saveData();
-        renderStats();
-      }
-    }
-
-    function renderTable() {
-      const filteredItems = getFilteredAndSortedItems();
       const tbody = document.getElementById('tableBody');
-      const infoSpan = document.getElementById('tableInfo');
+      tbody.innerHTML = '';
 
-      if (infoSpan) infoSpan.textContent = `Affichage de ${filteredItems.length} sur ${items.length} contenu(s)`;
+      filtered.forEach((item) => {
+        const tr = document.createElement('tr');
+        const stObj = boConfig.statut.find(s => s.name === item.statut) || { color: '#e2e8f0' };
+        const textColor = getContrastYIQ(stObj.color);
 
-      if (!tbody) return;
-
-      if (filteredItems.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="9" class="p-8 text-center text-slate-400">
-              <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
-              <p class="text-sm font-medium">Aucun contenu trouvé</p>
-              <p class="text-xs">Ajustez vos filtres ou effectuez une nouvelle saisie.</p>
-            </td>
-          </tr>
+        tr.innerHTML = `
+          <td><strong>#${item.id}</strong></td>
+          <td>
+            <strong>${escapeHtml(item.titre)}</strong>
+            ${item.contact ? `<br><small style="color:var(--text-muted)">Contact: ${escapeHtml(item.contact)}</small>` : ''}
+          </td>
+          <td><span class="badge" style="background:#f0f0f0; border:1px solid #ccc;">${escapeHtml(item.typologie || '-')}</span></td>
+          <td>${escapeHtml(item.thematique || '-')}</td>
+          <td><small>${escapeHtml(item.dga || '-')}</small><br><small style="color:var(--text-muted)">${escapeHtml(item.service || '-')}</small></td>
+          <td>${escapeHtml(item.attribue_a || '-')}</td>
+          <td><small>R1: ${escapeHtml(item.relecture_1 || '-')}</small><br><small>R2: ${escapeHtml(item.relecture_2 || '-')}</small></td>
+          <td><small>${item.date_envoi || '-'}</small></td>
+          <td>${formatDueDate(item.date_butoire, item.statut)}</td>
+          <td><span class="badge badge-prio-${item.priorite}">${item.priorite}</span></td>
+          <td>
+            <select class="status-select" style="background-color: ${stObj.color}; color: ${textColor};" onchange="updateQuickStatus('${item.id}', this.value)">
+              ${boConfig.statut.map(s => `<option value="${escapeHtml(s.name)}" ${s.name === item.statut ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}
+            </select>
+          </td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="openEditModal('${item.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">🗑️</button>
+          </td>
         `;
-        if (window.lucide) lucide.createIcons();
-        return;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // DATE ALERT LOGIC (J-2)
+    function isUrgent(dateStr, statut) {
+      if (!dateStr || statut === 'Publié' || statut === 'Validé') return false;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const due = new Date(dateStr);
+      due.setHours(0,0,0,0);
+      const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+      return diffDays <= 2;
+    }
+
+    function formatDueDate(dateStr, statut) {
+      if (!dateStr) return '-';
+      if (statut === 'Publié' || statut === 'Validé') return `<span class="date-ok">${dateStr}</span>`;
+      
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const due = new Date(dateStr);
+      due.setHours(0,0,0,0);
+      const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        return `<span class="date-alert-overdue">🚨 Retard (${dateStr})</span>`;
+      } else if (diffDays <= 2) {
+        return `<span class="date-alert-j2">⚠️ J-${diffDays} (${dateStr})</span>`;
       }
-
-      const statutOptions = config.statut && config.statut.length > 0 ? config.statut : defaultConfig.statut;
-
-      tbody.innerHTML = filteredItems.map(item => {
-        const originalIndex = items.findIndex(i => i === item);
-
-        return `
-          <tr class="hover:bg-slate-50/80 transition-colors">
-            <td class="p-4 font-mono font-semibold text-slate-600 text-[11px]">${escapeHtml(item.id || '-')}</td>
-            <td class="p-4">
-              <div class="font-bold text-slate-900">${escapeHtml(item.titre || 'Sans titre')}</div>
-              ${item.contact ? `<div class="text-[11px] text-slate-500 mt-0.5 truncate max-w-[200px]" title="${escapeHtml(item.contact)}"><i data-lucide="mail" class="w-3 h-3 inline"></i> ${escapeHtml(item.contact)}</div>` : ''}
-            </td>
-            <td class="p-4">
-              <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                <i data-lucide="tag" class="w-3 h-3 mr-1 text-slate-400"></i> ${escapeHtml(item.typologie || 'Non défini')}
-              </span>
-            </td>
-            <td class="p-4">
-              <div class="text-slate-800 font-semibold">${escapeHtml(item.thematique || '-')}</div>
-              <div class="text-[11px] text-slate-400">${escapeHtml(item.dga || '')} ${item.service ? '• ' + escapeHtml(item.service) : ''}</div>
-            </td>
-            <td class="p-4 text-[11px] space-y-0.5">
-              <div><strong class="text-slate-700">Rédac :</strong> ${escapeHtml(item.attribue_a || '-')}</div>
-              <div class="text-slate-500"><strong>Rel 1 :</strong> ${escapeHtml(item.relecture_1 || '-')}</div>
-              <div class="text-slate-500"><strong>Rel 2 :</strong> ${escapeHtml(item.relecture_2 || '-')}</div>
-            </td>
-            <td class="p-4 text-[11px]">
-              <div><span class="text-slate-400">Envoi :</span> ${item.date_envoi || '-'}</div>
-              <div><span class="text-slate-400">Lim :</span> <strong class="${isOverdue(item.date_butoire) ? 'text-rose-600 font-bold' : 'text-slate-700'}">${item.date_butoire || '-'}</strong></div>
-            </td>
-            <td class="p-4">
-              ${getPriorityBadge(item.priorite)}
-            </td>
-            <td class="p-4">
-              <div class="relative inline-block w-full min-w-[130px]">
-                <select onchange="updateItemStatut(${originalIndex}, this.value)" class="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer ${getStatusBadgeStyle(item.statut)}">
-                  ${statutOptions.map(st => `<option value="${escapeHtml(st)}" ${st === item.statut ? 'selected' : ''}>${escapeHtml(st)}</option>`).join('')}
-                </select>
-              </div>
-            </td>
-            <td class="p-4 text-right space-x-1">
-              <button onclick="editItem(${originalIndex})" class="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Éditer">
-                <i data-lucide="edit" class="w-4 h-4"></i>
-              </button>
-              <button onclick="deleteItem(${originalIndex})" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Supprimer">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      if (window.lucide) lucide.createIcons();
+      return `<span class="date-ok">${dateStr}</span>`;
     }
 
-    function renderStats() {
-      const total = items.length;
-      const counts = {};
-      (config.statut || defaultConfig.statut).forEach(st => counts[st] = 0);
+    function toggleUrgences() {
+      showUrgencesOnly = !showUrgencesOnly;
+      const btn = document.getElementById('btnUrgences');
+      btn.style.outline = showUrgencesOnly ? '3px solid red' : 'none';
+      renderApp();
+    }
 
-      items.forEach(item => {
-        if (counts[item.statut] !== undefined) {
-          counts[item.statut]++;
-        }
+    // KPIS & DROPDOWNS
+    function renderKPIs() {
+      const container = document.getElementById('kpiContainer');
+      container.innerHTML = '';
+      
+      boConfig.statut.forEach(st => {
+        const count = items.filter(i => i.statut === st.name).length;
+        const card = document.createElement('div');
+        card.className = 'kpi-card';
+        card.style.borderLeftColor = st.color;
+        card.innerHTML = `<div class="kpi-val">${count}</div><div class="kpi-lbl">${escapeHtml(st.name)}</div>`;
+        container.appendChild(card);
       });
-
-      const container = document.getElementById('statsContainer');
-      if (!container) return;
-
-      container.innerHTML = `
-        ${createStatCard('Total Contenus', total, 'layers', 'bg-slate-100 text-slate-700')}
-        ${createStatCard('À traiter', counts['À traiter'] || 0, 'clock', 'bg-amber-50 text-amber-700')}
-        ${createStatCard('En réécriture', counts['En réécriture'] || 0, 'edit-2', 'bg-blue-50 text-blue-700')}
-        ${createStatCard('Relecture 1', counts['Relecture 1'] || 0, 'eye', 'bg-purple-50 text-purple-700')}
-        ${createStatCard('Validés', counts['Validé'] || 0, 'check-circle', 'bg-emerald-50 text-emerald-700')}
-        ${createStatCard('Publiés', counts['Publié'] || 0, 'globe', 'bg-teal-50 text-teal-700')}
-      `;
-
-      if (window.lucide) lucide.createIcons();
     }
 
-    function createStatCard(title, count, icon, colorClass) {
-      return `
-        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-[11px] font-semibold text-slate-500">${title}</p>
-            <p class="text-xl font-bold text-slate-900 mt-0.5">${count}</p>
-          </div>
-          <div class="p-2 rounded-lg ${colorClass}">
-            <i data-lucide="${icon}" class="w-4 h-4"></i>
-          </div>
-        </div>
-      `;
+    function populateDropdowns() {
+      populateSelect('filterStatut', boConfig.statut.map(s => s.name), 'Tous les statuts');
+      populateSelect('filterTypologie', boConfig.typologie, 'Toutes les typologies');
+      
+      populateSelect('field_statut', boConfig.statut.map(s => s.name));
+      populateSelect('field_typologie', boConfig.typologie);
+      populateSelect('field_dga', boConfig.dga);
+      populateSelect('field_service', boConfig.service);
+      populateSelect('field_attribue_a', boConfig.attribue_a);
+      populateSelect('field_relecture_1', boConfig.relecture_1);
+      populateSelect('field_relecture_2', boConfig.relecture_2);
     }
 
-    function getPriorityBadge(priorite) {
-      const styles = {
-        'Urgente': 'bg-rose-100 text-rose-800 border-rose-200',
-        'Haute': 'bg-orange-100 text-orange-800 border-orange-200',
-        'Moyenne': 'bg-amber-100 text-amber-800 border-amber-200',
-        'Basse': 'bg-slate-100 text-slate-700 border-slate-200'
-      };
-      const style = styles[priorite] || styles['Basse'];
-      return `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${style}">${priorite || 'Basse'}</span>`;
-    }
-
-    function getStatusBadgeStyle(statut) {
-      const styles = {
-        'À traiter': 'bg-slate-100 text-slate-700 border-slate-300',
-        'En réécriture': 'bg-blue-100 text-blue-800 border-blue-300',
-        'Relecture 1': 'bg-purple-100 text-purple-800 border-purple-300',
-        'Relecture 2': 'bg-indigo-100 text-indigo-800 border-indigo-300',
-        'Validé': 'bg-emerald-100 text-emerald-800 border-emerald-300',
-        'Publié': 'bg-teal-100 text-teal-800 border-teal-300'
-      };
-      return styles[statut] || 'bg-slate-100 text-slate-700 border-slate-300';
-    }
-
-    function isOverdue(dateStr) {
-      if (!dateStr) return false;
-      const today = new Date().toISOString().split('T')[0];
-      return dateStr < today;
-    }
-
-    function escapeHtml(str) {
-      return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    }
-
-    function sortTable(column) {
-      if (sortColumn === column) {
-        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-      } else {
-        sortColumn = column;
-        sortDirection = 'asc';
+    function populateSelect(elemId, options, defaultText = null) {
+      const sel = document.getElementById(elemId);
+      sel.innerHTML = '';
+      if (defaultText) {
+        sel.innerHTML += `<option value="">${defaultText}</option>`;
       }
-      renderTable();
-    }
-
-    function setupEventListeners() {
-      document.getElementById('searchInput').addEventListener('input', renderTable);
-      document.getElementById('filterStatut').addEventListener('change', renderTable);
-      document.getElementById('filterTypologie').addEventListener('change', renderTable);
-      document.getElementById('filterPriorite').addEventListener('change', renderTable);
-      document.getElementById('filterDga').addEventListener('change', renderTable);
-
-      document.getElementById('btnClearFilters').addEventListener('click', () => {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('filterStatut').value = '';
-        document.getElementById('filterTypologie').value = '';
-        document.getElementById('filterPriorite').value = '';
-        document.getElementById('filterDga').value = '';
-        renderTable();
-      });
-
-      document.getElementById('btnClearAll').addEventListener('click', () => {
-        if (confirm("Voulez-vous vraiment supprimer TOUS les contenus ?")) {
-          items = [];
-          saveData();
-          renderApp();
-        }
-      });
-
-      document.getElementById('btnOpenImport').addEventListener('click', () => openModal('modalImport'));
-      document.getElementById('btnOpenCreate').addEventListener('click', () => {
-        resetForm();
-        document.getElementById('modalFormTitle').textContent = "Nouveau contenu";
-        openModal('modalForm');
-      });
-
-      document.querySelectorAll('.btnCloseModal').forEach(btn => {
-        btn.addEventListener('click', () => {
-          closeModal('modalImport');
-          closeModal('modalForm');
-        });
-      });
-
-      document.getElementById('itemForm').addEventListener('submit', handleFormSubmit);
-
-      document.getElementById('btnProcessImport').addEventListener('click', handleJsonImport);
-      document.getElementById('btnExportJSON').addEventListener('click', exportJSON);
-      document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
-
-      document.getElementById('btnExportConfig').addEventListener('click', exportConfigJSON);
-      document.getElementById('btnImportConfig').addEventListener('click', () => document.getElementById('inputFileConfig').click());
-      document.getElementById('inputFileConfig').addEventListener('change', importConfigJSON);
-      document.getElementById('btnResetConfig').addEventListener('click', () => {
-        if (confirm("Réinitialiser toutes les listes déroulantes avec les options par défaut ?")) {
-          config = JSON.parse(JSON.stringify(defaultConfig));
-          saveConfig();
-          renderApp();
-        }
-      });
-
-      const dropZone = document.getElementById('dropZone');
-      const fileInput = document.getElementById('fileInput');
-
-      dropZone.addEventListener('click', () => fileInput.click());
-      ['dragenter', 'dragover'].forEach(name => {
-        dropZone.addEventListener(name, (e) => {
-          e.preventDefault();
-          dropZone.classList.add('border-brand-500', 'bg-brand-50/50');
-        });
-      });
-      ['dragleave', 'drop'].forEach(name => {
-        dropZone.addEventListener(name, (e) => {
-          e.preventDefault();
-          dropZone.classList.remove('border-brand-500', 'bg-brand-50/50');
-        });
-      });
-      dropZone.addEventListener('drop', (e) => {
-        if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
-      });
-      fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
+      options.forEach(opt => {
+        sel.innerHTML += `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`;
       });
     }
 
-    function openModal(id) {
-      document.getElementById(id).classList.remove('hidden');
-    }
-
-    function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
-    }
-
-    function handleFileSelect(file) {
-      if (!file.name.endsWith('.json')) {
-        showImportFeedback("Veuillez sélectionner un fichier .json valide.", "text-rose-600");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        document.getElementById('jsonTextArea').value = e.target.result;
-        showImportFeedback(`Fichier "${file.name}" chargé. Cliquez sur Valider.`, "text-emerald-600");
-      };
-      reader.readAsText(file);
-    }
-
-    function handleJsonImport() {
-      const rawJson = document.getElementById('jsonTextArea').value.trim();
-      const importMode = document.querySelector('input[name="importMode"]:checked').value;
-
-      if (!rawJson) {
-        showImportFeedback("Veuillez coller du JSON ou charger un fichier.", "text-rose-600");
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(rawJson);
-        const importedArray = Array.isArray(parsed) ? parsed : [parsed];
-
-        const defaultStatut = (config.statut && config.statut[0]) || 'À traiter';
-        const defaultTypo = (config.typologie && config.typologie[0]) || 'Page d\'information';
-
-        const sanitized = importedArray.map((item, idx) => ({
-          id: String(item.id || `IMPORT-${Date.now()}-${idx+1}`),
-          titre: String(item.titre || 'Titre non spécifié'),
-          thematique: String(item.thematique || ''),
-          priorite: ['Basse', 'Moyenne', 'Haute', 'Urgente'].includes(item.priorite) ? item.priorite : 'Moyenne',
-          statut: String(item.statut || defaultStatut),
-          attribue_a: String(item.attribue_a || ''),
-          relecture_1: String(item.relecture_1 || ''),
-          relecture_2: String(item.relecture_2 || ''),
-          date_envoi: String(item.date_envoi || ''),
-          date_butoire: String(item.date_butoire || ''),
-          dga: String(item.dga || ''),
-          service: String(item.service || ''),
-          contact: String(item.contact || ''),
-          commentaires: String(item.commentaires || ''),
-          typologie: String(item.typologie || defaultTypo)
-        }));
-
-        if (importMode === 'replace') {
-          items = sanitized;
-        } else {
-          items = [...items, ...sanitized];
-        }
-
-        saveData();
+    // QUICK STATUS UPDATE
+    function updateQuickStatus(id, newStatut) {
+      const item = items.find(i => i.id === id);
+      if (item) {
+        item.statut = newStatut;
+        saveItemsData();
         renderApp();
-        closeModal('modalImport');
-        document.getElementById('jsonTextArea').value = '';
-        showImportFeedback('', '');
-      } catch (err) {
-        showImportFeedback("Erreur de syntaxe JSON : " + err.message, "text-rose-600");
       }
     }
 
-    function showImportFeedback(msg, colorClass) {
-      const fb = document.getElementById('importFeedback');
-      fb.textContent = msg;
-      fb.className = `text-xs font-medium ${colorClass}`;
+    // EDIT / ADD ITEM
+    function openAddModal() {
+      document.getElementById('modalTitle').innerText = "Ajouter un contenu";
+      document.getElementById('editId').value = "";
+      document.getElementById('itemForm').reset();
+      document.getElementById('contentModal').style.display = 'flex';
     }
 
-    function setupSampleJsonDisplay() {
-      const sample = [{
-        "id": "PAGE-101",
-        "titre": "Inscription à la restauration scolaire",
-        "thematique": "Éducation",
-        "priorite": "Haute",
-        "statut": "À traiter",
-        "attribue_a": "Sophie Martin",
-        "relecture_1": "Pierre Durand",
-        "relecture_2": "Responsable Éditorial",
-        "date_envoi": "2026-11-03",
-        "date_butoire": "2026-11-25",
-        "dga": "DGA Services à la Population",
-        "service": "Direction de l'Éducation",
-        "contact": "education@ville.fr",
-        "commentaires": "Simplifier les étapes en ligne.",
-        "typologie": "Démarche / Procédure"
-      }];
-      const sampleStr = JSON.stringify(sample, null, 2);
-      document.getElementById('jsonSampleCode').textContent = sampleStr;
-
-      document.getElementById('btnCopySample').addEventListener('click', () => {
-        const textarea = document.createElement('textarea');
-        textarea.value = sampleStr;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-
-        const btn = document.getElementById('btnCopySample');
-        btn.innerHTML = `<i data-lucide="check" class="w-3 h-3"></i> Copié !`;
-        if (window.lucide) lucide.createIcons();
-        setTimeout(() => {
-          btn.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i> Copier l'exemple`;
-          if (window.lucide) lucide.createIcons();
-        }, 2000);
-      });
-    }
-
-    function resetForm() {
-      document.getElementById('field_index').value = '';
-      document.getElementById('field_id').value = `PAGE-${Math.floor(100 + Math.random() * 900)}`;
-      document.getElementById('field_titre').value = '';
-      document.getElementById('field_thematique').value = '';
-      document.getElementById('field_priorite').value = 'Moyenne';
-      document.getElementById('field_contact').value = '';
-      document.getElementById('field_date_envoi').value = new Date().toISOString().split('T')[0];
-      document.getElementById('field_date_butoire').value = '';
-      document.getElementById('field_commentaires').value = '';
-
-      document.getElementById('field_statut').value = config.statut[0] || '';
-      document.getElementById('field_dga').value = config.dga[0] || '';
-      document.getElementById('field_service').value = config.service[0] || '';
-      document.getElementById('field_typologie').value = config.typologie[0] || '';
-      document.getElementById('field_attribue_a').value = config.attribue_a[0] || '';
-      document.getElementById('field_relecture_1').value = config.relecture_1[0] || '';
-      document.getElementById('field_relecture_2').value = config.relecture_2[0] || '';
-    }
-
-    function editItem(index) {
-      const item = items[index];
+    function openEditModal(id) {
+      const item = items.find(i => i.id === id);
       if (!item) return;
 
-      document.getElementById('field_index').value = index;
-      document.getElementById('field_id').value = item.id || '';
-      document.getElementById('field_titre').value = item.titre || '';
-      document.getElementById('field_thematique').value = item.thematique || '';
-      document.getElementById('field_priorite').value = item.priorite || 'Moyenne';
-      document.getElementById('field_contact').value = item.contact || '';
-      document.getElementById('field_date_envoi').value = item.date_envoi || '';
-      document.getElementById('field_date_butoire').value = item.date_butoire || '';
-      document.getElementById('field_commentaires').value = item.commentaires || '';
+      document.getElementById('modalTitle').innerText = "Modifier le contenu #" + id;
+      document.getElementById('editId').value = id;
+      document.getElementById('field_titre').value = item.titre || "";
+      document.getElementById('field_thematique').value = item.thematique || "";
+      document.getElementById('field_typologie').value = item.typologie || "";
+      document.getElementById('field_dga').value = item.dga || "";
+      document.getElementById('field_service').value = item.service || "";
+      document.getElementById('field_attribue_a').value = item.attribue_a || "";
+      document.getElementById('field_relecture_1').value = item.relecture_1 || "";
+      document.getElementById('field_relecture_2').value = item.relecture_2 || "";
+      document.getElementById('field_priorite').value = item.priorite || "Moyenne";
+      document.getElementById('field_statut').value = item.statut || "";
+      document.getElementById('field_date_envoi').value = item.date_envoi || "";
+      document.getElementById('field_date_butoire').value = item.date_butoire || "";
+      document.getElementById('field_contact').value = item.contact || "";
+      document.getElementById('field_commentaires').value = item.commentaires || "";
 
-      document.getElementById('field_statut').value = item.statut || '';
-      document.getElementById('field_dga').value = item.dga || '';
-      document.getElementById('field_service').value = item.service || '';
-      document.getElementById('field_typologie').value = item.typologie || '';
-      document.getElementById('field_attribue_a').value = item.attribue_a || '';
-      document.getElementById('field_relecture_1').value = item.relecture_1 || '';
-      document.getElementById('field_relecture_2').value = item.relecture_2 || '';
-
-      document.getElementById('modalFormTitle').textContent = "Éditer le contenu #" + (item.id || '');
-      openModal('modalForm');
+      document.getElementById('contentModal').style.display = 'flex';
     }
 
-    function deleteItem(index) {
-      if (confirm("Supprimer ce contenu ?")) {
-        items.splice(index, 1);
-        saveData();
-        renderApp();
-      }
+    function closeModal() {
+      document.getElementById('contentModal').style.display = 'none';
     }
 
-    function handleFormSubmit(e) {
+    function saveItem(e) {
       e.preventDefault();
-      const indexStr = document.getElementById('field_index').value;
-
+      const editId = document.getElementById('editId').value;
       const itemData = {
-        id: document.getElementById('field_id').value || `PAGE-${Date.now()}`,
+        id: editId || Date.now().toString().slice(-5),
         titre: document.getElementById('field_titre').value,
         thematique: document.getElementById('field_thematique').value,
         typologie: document.getElementById('field_typologie').value,
-        priorite: document.getElementById('field_priorite').value,
-        statut: document.getElementById('field_statut').value,
         dga: document.getElementById('field_dga').value,
         service: document.getElementById('field_service').value,
-        contact: document.getElementById('field_contact').value,
         attribue_a: document.getElementById('field_attribue_a').value,
         relecture_1: document.getElementById('field_relecture_1').value,
         relecture_2: document.getElementById('field_relecture_2').value,
+        priorite: document.getElementById('field_priorite').value,
+        statut: document.getElementById('field_statut').value,
         date_envoi: document.getElementById('field_date_envoi').value,
         date_butoire: document.getElementById('field_date_butoire').value,
+        contact: document.getElementById('field_contact').value,
         commentaires: document.getElementById('field_commentaires').value
       };
 
-      if (indexStr !== '') {
-        items[parseInt(indexStr, 10)] = itemData;
+      if (editId) {
+        const idx = items.findIndex(i => i.id === editId);
+        if (idx !== -1) items[idx] = itemData;
       } else {
         items.push(itemData);
       }
 
-      saveData();
+      saveItemsData();
+      closeModal();
       renderApp();
-      closeModal('modalForm');
     }
 
-    function exportJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
-      downloadFile(dataStr, `reecritures_contenus_${getTodayDateStr()}.json`);
+    function deleteItem(id) {
+      if (confirm("Supprimer ce contenu ?")) {
+        items = items.filter(i => i.id !== id);
+        saveItemsData();
+        renderApp();
+      }
     }
 
-    function exportCSV() {
-      if (items.length === 0) return;
-      const headers = ["id", "titre", "thematique", "priorite", "statut", "attribue_a", "relecture_1", "relecture_2", "date_envoi", "date_butoire", "dga", "service", "contact", "commentaires", "typologie"];
-      const csvRows = [headers.join(";")];
+    // BACK-OFFICE RENDER & MANAGEMENT
+    function renderBackOffice() {
+      const container = document.getElementById('boContainer');
+      container.innerHTML = '';
 
-      items.forEach(item => {
-        const values = headers.map(header => {
-          const val = (item[header] || '').toString().replace(/"/g, '""');
-          return `"${val}"`;
-        });
-        csvRows.push(values.join(";"));
+      // Render Statuts with Color Picker
+      const statutCard = document.createElement('div');
+      statutCard.className = 'card';
+      statutCard.innerHTML = `
+        <h2>Statuts & Couleurs</h2>
+        <div style="display:flex; gap:6px; margin-bottom:10px;">
+          <input type="text" id="add_bo_statut" placeholder="Nouveau statut...">
+          <button class="btn btn-primary" onclick="addBOItem('statut')">+</button>
+        </div>
+        <ul class="bo-item-list">
+          ${boConfig.statut.map((st, i) => `
+            <li>
+              <input type="color" value="${st.color}" onchange="updateBOColor(${i}, this.value)">
+              <span>${escapeHtml(st.name)}</span>
+              <div>
+                <button class="btn btn-secondary btn-sm" onclick="moveBO('statut', ${i}, -1)">⬆️</button>
+                <button class="btn btn-secondary btn-sm" onclick="moveBO('statut', ${i}, 1)">⬇️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteBO('statut', ${i})">❌</button>
+              </div>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+      container.appendChild(statutCard);
+
+      // Render other simple lists
+      const keys = [
+        { key: 'typologie', title: 'Typologies' },
+        { key: 'dga', title: 'DGAs' },
+        { key: 'service', title: 'Services' },
+        { key: 'attribue_a', title: 'Rédacteurs (Attribué à)' },
+        { key: 'relecture_1', title: 'Relecteurs 1' },
+        { key: 'relecture_2', title: 'Relecteurs 2' }
+      ];
+
+      keys.forEach(k => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <h2>${k.title}</h2>
+          <div style="display:flex; gap:6px; margin-bottom:10px;">
+            <input type="text" id="add_bo_${k.key}" placeholder="Ajouter option...">
+            <button class="btn btn-primary" onclick="addBOItem('${k.key}')">+</button>
+          </div>
+          <ul class="bo-item-list">
+            ${boConfig[k.key].map((item, i) => `
+              <li>
+                <span>${escapeHtml(item)}</span>
+                <div>
+                  <button class="btn btn-secondary btn-sm" onclick="moveBO('${k.key}', ${i}, -1)">⬆️</button>
+                  <button class="btn btn-secondary btn-sm" onclick="moveBO('${k.key}', ${i}, 1)">⬇️</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteBO('${k.key}', ${i})">❌</button>
+                </div>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+        container.appendChild(card);
       });
-
-      const csvString = "\uFEFF" + csvRows.join("\n");
-      const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
-      downloadFile(dataStr, `reecritures_contenus_${getTodayDateStr()}.csv`);
     }
 
-    function exportConfigJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
-      downloadFile(dataStr, `config_backoffice_listes_${getTodayDateStr()}.json`);
+    function addBOItem(key) {
+      const inp = document.getElementById('add_bo_' + key);
+      const val = inp.value.trim();
+      if (!val) return;
+
+      if (key === 'statut') {
+        boConfig.statut.push({ name: val, color: '#e2e8f0' });
+      } else {
+        boConfig[key].push(val);
+      }
+      saveBOConfig();
+      inp.value = '';
+      renderBackOffice();
     }
 
-    function importConfigJSON(e) {
+    function updateBOColor(index, color) {
+      boConfig.statut[index].color = color;
+      saveBOConfig();
+    }
+
+    function deleteBO(key, index) {
+      boConfig[key].splice(index, 1);
+      saveBOConfig();
+      renderBackOffice();
+    }
+
+    function moveBO(key, index, dir) {
+      const newIdx = index + dir;
+      if (newIdx < 0 || newIdx >= boConfig[key].length) return;
+      const temp = boConfig[key][index];
+      boConfig[key][index] = boConfig[key][newIdx];
+      boConfig[key][newIdx] = temp;
+      saveBOConfig();
+      renderBackOffice();
+    }
+
+    function resetBOConfig() {
+      if (confirm("Réinitialiser les options par défaut ?")) {
+        boConfig = JSON.parse(JSON.stringify(defaultConfig));
+        saveBOConfig();
+        renderBackOffice();
+      }
+    }
+
+    function exportBOConfig() {
+      downloadFile(JSON.stringify(boConfig, null, 2), 'bo_config.json', 'application/json');
+    }
+
+    // JSON IMPORT LOGIC
+    function setupDragAndDrop() {
+      const zone = document.getElementById('dropZone');
+      zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.borderColor = 'var(--primary)'; });
+      zone.addEventListener('dragleave', () => { zone.style.borderColor = 'var(--border)'; });
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.style.borderColor = 'var(--border)';
+        if (e.dataTransfer.files.length) handleFileImport({ target: { files: e.dataTransfer.files } });
+      });
+    }
+
+    function handleFileImport(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = (evt) => {
-        try {
-          const parsed = JSON.parse(evt.target.result);
-          if (typeof parsed === 'object') {
-            config = { ...defaultConfig, ...parsed };
-            saveConfig();
-            renderApp();
-            alert("La configuration du Back-Office a été importée avec succès !");
-          }
-        } catch(err) {
-          alert("Erreur lors de la lecture du fichier de configuration JSON.");
-        }
+        document.getElementById('jsonPaste').value = evt.target.result;
       };
       reader.readAsText(file);
     }
 
-    function downloadFile(dataUri, filename) {
-      const link = document.createElement('a');
-      link.setAttribute('href', dataUri);
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    function processTextImport(replace) {
+      try {
+        const raw = document.getElementById('jsonPaste').value.trim();
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error("Le JSON doit être un tableau d'objets [ {} ]");
+
+        const sanitized = parsed.map((item, idx) => ({
+          id: item.id || (Date.now() + idx).toString().slice(-5),
+          titre: item.titre || "Sans titre",
+          thematique: item.thematique || "",
+          typologie: item.typologie || boConfig.typologie[0] || "",
+          dga: item.dga || "",
+          service: item.service || "",
+          attribue_a: item.attribue_a || "",
+          relecture_1: item.relecture_1 || "",
+          relecture_2: item.relecture_2 || "",
+          priorite: item.priorite || "Moyenne",
+          statut: item.statut || boConfig.statut[0].name,
+          date_envoi: item.date_envoi || "",
+          date_butoire: item.date_butoire || "",
+          contact: item.contact || "",
+          commentaires: item.commentaires || ""
+        }));
+
+        if (replace) items = sanitized;
+        else items = [...items, ...sanitized];
+
+        saveItemsData();
+        alert(`${sanitized.length} éléments importés avec succès !`);
+        switchTab('dashboard');
+      } catch (err) {
+        alert("Erreur lors de l'import JSON: " + err.message);
+      }
     }
 
-    function getTodayDateStr() {
-      return new Date().toISOString().split('T')[0];
+    function copySampleJSON() {
+      const sample = [
+        {
+          id: "101",
+          titre: "Page Transport Scolaire",
+          thematique: "Transports",
+          typologie: "Démarche / Procédure",
+          dga: "DGA Aménagement",
+          service: "Service Transport",
+          attribue_a: "Jean Dupont",
+          relecture_1: "Sophie Germain",
+          relecture_2: "Directeur de projet",
+          priorite: "Haute",
+          statut: "En réécriture",
+          date_envoi: "2026-11-01",
+          date_butoire: "2026-11-04",
+          contact: "contact.transport@domaine.fr",
+          commentaires: "Clarifier les modalités RGAA."
+        }
+      ];
+      document.getElementById('jsonPaste').value = JSON.stringify(sample, null, 2);
     }
+
+    // EXPORTS
+    function exportJSON() {
+      downloadFile(JSON.stringify(items, null, 2), 'contenus_web.json', 'application/json');
+    }
+
+    function exportCSV() {
+      if (!items.length) return alert("Aucune donnée à exporter.");
+      const headers = Object.keys(items[0]).join(",");
+      const rows = items.map(i => Object.values(i).map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
+      const csvContent = "\uFEFF" + [headers, ...rows].join("\n");
+      downloadFile(csvContent, 'contenus_web.csv', 'text/csv;charset=utf-8;');
+    }
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    // UTILS
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function getContrastYIQ(hexcolor){
+      hexcolor = hexcolor.replace("#", "");
+      if(hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c + c).join('');
+      const r = parseInt(hexcolor.substr(0,2),16);
+      const g = parseInt(hexcolor.substr(2,2),16);
+      const b = parseInt(hexcolor.substr(4,2),16);
+      const yiq = ((r*299)+(g*587)+(b*114))/1000;
+      return (yiq >= 128) ? '#172b4d' : '#ffffff';
+    }
+
+    // START
+    init();
   </script>
 </body>
 </html>
