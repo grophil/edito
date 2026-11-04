@@ -65,11 +65,13 @@
     .btn-warning { background: var(--warning); color: #172b4d; }
     .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
 
-    /* Table */
+    /* Table & Sort Headers */
     .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border); }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
     th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    th { background: #fafbfc; color: #5e6c84; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
+    th { background: #fafbfc; color: #5e6c84; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; user-select: none; }
+    th.sortable { cursor: pointer; transition: background 0.2s; }
+    th.sortable:hover { background: #ebecf0; color: var(--primary); }
     tr:hover { background-color: #f4f5f7; }
 
     /* Custom Badges & Selects */
@@ -136,17 +138,17 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Titre</th>
+              <th class="sortable" onclick="setSort('id')">ID <span id="sort_id"></span></th>
+              <th class="sortable" onclick="setSort('titre')">Titre <span id="sort_titre"></span></th>
               <th>Typologie</th>
               <th>Thématique</th>
-              <th>DGA / Service</th>
+              <th class="sortable" onclick="setSort('dga')">DGA / Service <span id="sort_dga"></span></th>
               <th>Attribué à</th>
               <th>Relecteurs</th>
               <th>Date envoi</th>
-              <th>Date butoire</th>
-              <th>Priorité</th>
-              <th>Statut</th>
+              <th class="sortable" onclick="setSort('date_butoire')">Date butoire <span id="sort_date_butoire"></span></th>
+              <th class="sortable" onclick="setSort('priorite')">Priorité <span id="sort_priorite"></span></th>
+              <th class="sortable" onclick="setSort('statut')">Statut <span id="sort_statut"></span></th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -294,6 +296,7 @@
     let boConfig = JSON.parse(localStorage.getItem('rewrite_bo_config')) || defaultConfig;
     let items = JSON.parse(localStorage.getItem('rewrite_items_data')) || [];
     let showUrgencesOnly = false;
+    let currentSort = { col: 'id', dir: 'asc' };
 
     function init() {
       if (!boConfig.thematique) boConfig.thematique = defaultConfig.thematique;
@@ -322,22 +325,65 @@
       if (tabId === 'dashboard') renderApp();
     }
 
+    function setSort(col) {
+      if (currentSort.col === col) {
+        currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSort.col = col;
+        currentSort.dir = 'asc';
+      }
+      renderApp();
+    }
+
+    function updateSortIcons() {
+      ['id', 'titre', 'dga', 'date_butoire', 'priorite', 'statut'].forEach(col => {
+        const el = document.getElementById('sort_' + col);
+        if (el) {
+          if (currentSort.col === col) {
+            el.innerText = currentSort.dir === 'asc' ? '▲' : '▼';
+          } else {
+            el.innerText = '';
+          }
+        }
+      });
+    }
+
     function renderApp() {
       populateDropdowns();
       renderKPIs();
+      updateSortIcons();
 
       const search = document.getElementById('filterSearch').value.toLowerCase();
       const fStatut = document.getElementById('filterStatut').value;
       const fTypo = document.getElementById('filterTypologie').value;
       const fPrio = document.getElementById('filterPrio').value;
 
-      const filtered = items.filter(item => {
+      let filtered = items.filter(item => {
         const mSearch = !search || item.titre.toLowerCase().includes(search) || String(item.id).toLowerCase().includes(search) || (item.contact && item.contact.toLowerCase().includes(search));
         const mStatut = !fStatut || item.statut === fStatut;
         const mTypo = !fTypo || item.typologie === fTypo;
         const mPrio = !fPrio || item.priorite === fPrio;
         const mUrgence = !showUrgencesOnly || isUrgent(item.date_butoire, item.statut);
         return mSearch && mStatut && mTypo && mPrio && mUrgence;
+      });
+
+      // SORT LOGIC
+      filtered.sort((a, b) => {
+        let valA = a[currentSort.col] || '';
+        let valB = b[currentSort.col] || '';
+
+        if (currentSort.col === 'priorite') {
+          const prioOrder = { 'Haute': 3, 'Moyenne': 2, 'Basse': 1, '': 0 };
+          valA = prioOrder[valA] || 0;
+          valB = prioOrder[valB] || 0;
+        } else {
+          valA = String(valA).toLowerCase();
+          valB = String(valB).toLowerCase();
+        }
+
+        if (valA < valB) return currentSort.dir === 'asc' ? -1 : 1;
+        if (valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
+        return 0;
       });
 
       const tbody = document.getElementById('tableBody');
