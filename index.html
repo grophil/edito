@@ -183,7 +183,9 @@
     <div id="tab-backoffice" class="tab-content">
       <div class="controls">
         <h2>⚙️ Configuration des listes déroulantes & couleurs</h2>
-        <div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary" onclick="document.getElementById('boConfigFile').click()">📥 Importer Config</button>
+          <input type="file" id="boConfigFile" accept=".json" style="display:none;" onchange="importBOConfig(event)">
           <button class="btn btn-secondary" onclick="exportBOConfig()">💾 Exporter Config</button>
           <button class="btn btn-danger" onclick="resetBOConfig()">🔄 Réinitialiser par défaut</button>
         </div>
@@ -208,16 +210,18 @@
             <select id="field_typologie"></select>
           </div>
           <div class="form-group">
-            <label>Thématique</label>
-            <input type="text" id="field_thematique">
+            <label>Thématique (champ libre auto-apprenant)</label>
+            <input type="text" id="field_thematique" list="dl_thematique" placeholder="Saisir ou choisir...">
+            <datalist id="dl_thematique"></datalist>
           </div>
           <div class="form-group">
             <label>DGA</label>
             <select id="field_dga"></select>
           </div>
           <div class="form-group">
-            <label>Service</label>
-            <select id="field_service"></select>
+            <label>Service (champ libre auto-apprenant)</label>
+            <input type="text" id="field_service" list="dl_service" placeholder="Saisir ou choisir...">
+            <datalist id="dl_service"></datalist>
           </div>
           <div class="form-group">
             <label>Attribué à (Rédacteur)</label>
@@ -278,12 +282,13 @@
         { name: "Validé", color: "#bbf7d0" },
         { name: "Publié", color: "#86efac" }
       ],
-      dga: ["DGA RHT", "DGA Aménagement", "DGA Solidarités", "DGA Éducation & Culture"],
-      service: ["Direction des Services Numériques", "Direction de la Communication", "DRH", "Service Transport"],
+      dga: ["DGA-S", "DGA-AE", "DGA-ECAT", "DGA-FM", "DGA-RHT", "Cabinet"],
+      service: ["Direction des Services Numériques", "Direction de la Communication", "DRH"],
+      thematique: ["Transports", "Environnement", "Action sociale", "Culture"],
       typologie: ["Page d'information", "Démarche / Procédure", "Actualité", "Fiche service"],
-      attribue_a: ["Non attribué", "Jean Dupont", "Marie Curie", "Pierre Martin"],
-      relecture_1: ["Non assigné", "Sophie Germain", "Lucie Aubrac"],
-      relecture_2: ["Non assigné", "Directeur de projet", "Chef de service"]
+      attribue_a: ["Non attribué", "Lucas D.", "Elise F.", "Elodie P.", "Anne L.", "Sylvain V."],
+      relecture_1: ["Non assigné", "Lucas D.", "Elise F.", "Elodie P.", "Anne L.", "Sylvain V."],
+      relecture_2: ["Non assigné", "Lucas D.", "Elise F.", "Elodie P.", "Anne L.", "Sylvain V."]
     };
 
     let boConfig = JSON.parse(localStorage.getItem('rewrite_bo_config')) || defaultConfig;
@@ -291,6 +296,8 @@
     let showUrgencesOnly = false;
 
     function init() {
+      if (!boConfig.thematique) boConfig.thematique = defaultConfig.thematique;
+      if (!boConfig.service) boConfig.service = defaultConfig.service;
       boConfig.statut = boConfig.statut.map(s => typeof s === 'string' ? { name: s, color: '#e2e8f0' } : s);
       saveBOConfig();
       renderApp();
@@ -425,10 +432,12 @@
       populateSelect('field_statut', boConfig.statut.map(s => s.name));
       populateSelect('field_typologie', boConfig.typologie);
       populateSelect('field_dga', boConfig.dga);
-      populateSelect('field_service', boConfig.service);
       populateSelect('field_attribue_a', boConfig.attribue_a);
       populateSelect('field_relecture_1', boConfig.relecture_1);
       populateSelect('field_relecture_2', boConfig.relecture_2);
+
+      populateDatalist('dl_thematique', boConfig.thematique);
+      populateDatalist('dl_service', boConfig.service);
     }
 
     function populateSelect(elemId, options, defaultText = null) {
@@ -441,6 +450,25 @@
       options.forEach(opt => {
         sel.innerHTML += `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`;
       });
+    }
+
+    function populateDatalist(elemId, options) {
+      const dl = document.getElementById(elemId);
+      if (!dl) return;
+      dl.innerHTML = '';
+      options.forEach(opt => {
+        if (opt) dl.innerHTML += `<option value="${escapeHtml(opt)}">`;
+      });
+    }
+
+    function addFreeTextEntry(key, val) {
+      val = val.trim();
+      if (!val) return;
+      if (!boConfig[key]) boConfig[key] = [];
+      if (!boConfig[key].includes(val)) {
+        boConfig[key].push(val);
+        saveBOConfig();
+      }
     }
 
     function updateQuickStatus(id, newStatut) {
@@ -490,13 +518,19 @@
     function saveItem(e) {
       e.preventDefault();
       const editId = document.getElementById('editId').value;
+      const thematiqueVal = document.getElementById('field_thematique').value;
+      const serviceVal = document.getElementById('field_service').value;
+
+      addFreeTextEntry('thematique', thematiqueVal);
+      addFreeTextEntry('service', serviceVal);
+
       const itemData = {
         id: editId || Date.now().toString().slice(-5),
         titre: document.getElementById('field_titre').value,
-        thematique: document.getElementById('field_thematique').value,
+        thematique: thematiqueVal,
         typologie: document.getElementById('field_typologie').value,
         dga: document.getElementById('field_dga').value,
-        service: document.getElementById('field_service').value,
+        service: serviceVal,
         attribue_a: document.getElementById('field_attribue_a').value,
         relecture_1: document.getElementById('field_relecture_1').value,
         relecture_2: document.getElementById('field_relecture_2').value,
@@ -558,9 +592,10 @@
       container.appendChild(statutCard);
 
       const keys = [
+        { key: 'thematique', title: 'Thématiques (enregistrées)' },
+        { key: 'service', title: 'Services (enregistrés)' },
         { key: 'typologie', title: 'Typologies' },
         { key: 'dga', title: 'DGAs' },
-        { key: 'service', title: 'Services' },
         { key: 'attribue_a', title: 'Rédacteurs (Attribué à)' },
         { key: 'relecture_1', title: 'Relecteurs 1' },
         { key: 'relecture_2', title: 'Relecteurs 2' }
@@ -576,7 +611,7 @@
             <button class="btn btn-primary" onclick="addBOItem('${k.key}')">+</button>
           </div>
           <ul class="bo-item-list">
-            ${boConfig[k.key].map((item, i) => `
+            ${(boConfig[k.key] || []).map((item, i) => `
               <li>
                 <span>${escapeHtml(item)}</span>
                 <div>
@@ -600,6 +635,7 @@
       if (key === 'statut') {
         boConfig.statut.push({ name: val, color: '#e2e8f0' });
       } else {
+        if (!boConfig[key]) boConfig[key] = [];
         boConfig[key].push(val);
       }
       saveBOConfig();
@@ -640,6 +676,25 @@
       downloadFile(JSON.stringify(boConfig, null, 2), 'bo_config.json', 'application/json');
     }
 
+    function importBOConfig(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (typeof parsed !== 'object') throw new Error("Format JSON invalide.");
+          boConfig = { ...defaultConfig, ...parsed };
+          saveBOConfig();
+          renderBackOffice();
+          alert("Configuration importée avec succès !");
+        } catch (err) {
+          alert("Erreur lors de l'import de la configuration: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
     function setupDragAndDrop() {
       const zone = document.getElementById('dropZone');
       zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.borderColor = 'var(--primary)'; });
@@ -667,23 +722,28 @@
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed)) throw new Error("Le JSON doit être un tableau d'objets [ {} ]");
 
-        const sanitized = parsed.map((item, idx) => ({
-          id: item.id || (Date.now() + idx).toString().slice(-5),
-          titre: item.titre || "Sans titre",
-          thematique: item.thematique || "",
-          typologie: item.typologie || boConfig.typologie[0] || "",
-          dga: item.dga || "",
-          service: item.service || "",
-          attribue_a: item.attribue_a || "",
-          relecture_1: item.relecture_1 || "",
-          relecture_2: item.relecture_2 || "",
-          priorite: item.priorite || "Moyenne",
-          statut: item.statut || boConfig.statut[0].name,
-          date_envoi: item.date_envoi || "",
-          date_butoire: item.date_butoire || "",
-          contact: item.contact || "",
-          commentaires: item.commentaires || ""
-        }));
+        const sanitized = parsed.map((item, idx) => {
+          if (item.thematique) addFreeTextEntry('thematique', item.thematique);
+          if (item.service) addFreeTextEntry('service', item.service);
+
+          return {
+            id: item.id || (Date.now() + idx).toString().slice(-5),
+            titre: item.titre || "Sans titre",
+            thematique: item.thematique || "",
+            typologie: item.typologie || boConfig.typologie[0] || "",
+            dga: item.dga || "",
+            service: item.service || "",
+            attribue_a: item.attribue_a || "",
+            relecture_1: item.relecture_1 || "",
+            relecture_2: item.relecture_2 || "",
+            priorite: item.priorite || "Moyenne",
+            statut: item.statut || boConfig.statut[0].name,
+            date_envoi: item.date_envoi || "",
+            date_butoire: item.date_butoire || "",
+            contact: item.contact || "",
+            commentaires: item.commentaires || ""
+          };
+        });
 
         if (replace) items = sanitized;
         else items = [...items, ...sanitized];
@@ -703,15 +763,15 @@
           titre: "Page Transport Scolaire",
           thematique: "Transports",
           typologie: "Démarche / Procédure",
-          dga: "DGA Aménagement",
-          service: "Service Transport",
-          attribue_a: "Jean Dupont",
-          relecture_1: "Sophie Germain",
-          relecture_2: "Directeur de projet",
+          dga: "DGA-AE",
+          service: "Direction des Services Numériques",
+          attribue_a: "Lucas D.",
+          relecture_1: "Elise F.",
+          relecture_2: "Anne L.",
           priorite: "Haute",
           statut: "En réécriture",
           date_envoi: "2026-11-01",
-          date_butoire: "2026-11-04",
+          date_butoire: "2026-11-06",
           contact: "contact.transport@domaine.fr",
           commentaires: "Clarifier les modalités RGAA."
         }
