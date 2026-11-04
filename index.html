@@ -115,7 +115,8 @@
       <!-- Controls & Filters -->
       <div class="controls">
         <div class="filters">
-          <input type="text" id="filterSearch" placeholder="🔍 Rechercher..." oninput="renderApp()" style="min-width: 200px;">
+          <input type="text" id="filterSearch" placeholder="🔍 Rechercher..." oninput="renderApp()" style="min-width: 180px;">
+          <select id="filterDga" onchange="renderApp()"><option value="">Toutes les DGA</option></select>
           <select id="filterStatut" onchange="renderApp()"><option value="">Tous les statuts</option></select>
           <select id="filterTypologie" onchange="renderApp()"><option value="">Toutes les typologies</option></select>
           <select id="filterPrio" onchange="renderApp()">
@@ -297,12 +298,14 @@
     let items = JSON.parse(localStorage.getItem('rewrite_items_data')) || [];
     let showUrgencesOnly = false;
     let currentSort = { col: 'id', dir: 'asc' };
+    let dropdownsPopulated = false;
 
     function init() {
       if (!boConfig.thematique) boConfig.thematique = defaultConfig.thematique;
       if (!boConfig.service) boConfig.service = defaultConfig.service;
       boConfig.statut = boConfig.statut.map(s => typeof s === 'string' ? { name: s, color: '#e2e8f0' } : s);
       saveBOConfig();
+      populateDropdowns();
       renderApp();
       setupDragAndDrop();
     }
@@ -349,22 +352,23 @@
     }
 
     function renderApp() {
-      populateDropdowns();
       renderKPIs();
       updateSortIcons();
 
       const search = document.getElementById('filterSearch').value.toLowerCase();
+      const fDga = document.getElementById('filterDga').value;
       const fStatut = document.getElementById('filterStatut').value;
       const fTypo = document.getElementById('filterTypologie').value;
       const fPrio = document.getElementById('filterPrio').value;
 
       let filtered = items.filter(item => {
         const mSearch = !search || item.titre.toLowerCase().includes(search) || String(item.id).toLowerCase().includes(search) || (item.contact && item.contact.toLowerCase().includes(search));
+        const mDga = !fDga || item.dga === fDga;
         const mStatut = !fStatut || item.statut === fStatut;
         const mTypo = !fTypo || item.typologie === fTypo;
         const mPrio = !fPrio || item.priorite === fPrio;
         const mUrgence = !showUrgencesOnly || isUrgent(item.date_butoire, item.statut);
-        return mSearch && mStatut && mTypo && mPrio && mUrgence;
+        return mSearch && mDga && mStatut && mTypo && mPrio && mUrgence;
       });
 
       // SORT LOGIC
@@ -472,6 +476,7 @@
     }
 
     function populateDropdowns() {
+      populateSelect('filterDga', boConfig.dga, 'Toutes les DGA');
       populateSelect('filterStatut', boConfig.statut.map(s => s.name), 'Tous les statuts');
       populateSelect('filterTypologie', boConfig.typologie, 'Toutes les typologies');
       
@@ -489,6 +494,7 @@
     function populateSelect(elemId, options, defaultText = null) {
       const sel = document.getElementById(elemId);
       if (!sel) return;
+      const currentVal = sel.value;
       sel.innerHTML = '';
       if (defaultText) {
         sel.innerHTML += `<option value="">${defaultText}</option>`;
@@ -496,6 +502,9 @@
       options.forEach(opt => {
         sel.innerHTML += `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`;
       });
+      if (currentVal && options.includes(currentVal)) {
+        sel.value = currentVal;
+      }
     }
 
     function populateDatalist(elemId, options) {
@@ -596,6 +605,7 @@
       }
 
       saveItemsData();
+      populateDropdowns();
       closeModal();
       renderApp();
     }
@@ -685,6 +695,7 @@
         boConfig[key].push(val);
       }
       saveBOConfig();
+      populateDropdowns();
       inp.value = '';
       renderBackOffice();
     }
@@ -697,6 +708,7 @@
     function deleteBO(key, index) {
       boConfig[key].splice(index, 1);
       saveBOConfig();
+      populateDropdowns();
       renderBackOffice();
     }
 
@@ -707,6 +719,7 @@
       boConfig[key][index] = boConfig[key][newIdx];
       boConfig[key][newIdx] = temp;
       saveBOConfig();
+      populateDropdowns();
       renderBackOffice();
     }
 
@@ -714,6 +727,7 @@
       if (confirm("Réinitialiser les options par défaut ?")) {
         boConfig = JSON.parse(JSON.stringify(defaultConfig));
         saveBOConfig();
+        populateDropdowns();
         renderBackOffice();
       }
     }
@@ -732,6 +746,7 @@
           if (typeof parsed !== 'object') throw new Error("Format JSON invalide.");
           boConfig = { ...defaultConfig, ...parsed };
           saveBOConfig();
+          populateDropdowns();
           renderBackOffice();
           alert("Configuration importée avec succès !");
         } catch (err) {
@@ -795,6 +810,7 @@
         else items = [...items, ...sanitized];
 
         saveItemsData();
+        populateDropdowns();
         alert(`${sanitized.length} éléments importés avec succès !`);
         switchTab('dashboard');
       } catch (err) {
